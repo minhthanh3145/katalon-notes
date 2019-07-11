@@ -41,7 +41,7 @@ import com.katalon.platform.api.ui.UISynchronizeService;
 import thanhto.katalon.katalon_notes.constant.CustomQueryConstants;
 import thanhto.katalon.katalon_notes.model.INote;
 import thanhto.katalon.katalon_notes.model.KatalonNote;
-import thanhto.katalon.katalon_notes.service.AbstractDatabaseService;
+import thanhto.katalon.katalon_notes.service.DatabaseService;
 import thanhto.katalon.katalon_notes.tree.KatalonNotesTreeContentProvider;
 import thanhto.katalon.katalon_notes.tree.KatalonNotesTreeLabelProvider;
 
@@ -57,7 +57,7 @@ public class AddNewNoteDialog extends Dialog {
 	private Browser browserPreview;
 	private Composite descriptionPreviewComposite;
 	private INote selectedNote;
-	private AbstractDatabaseService databaseService;
+	private DatabaseService databaseService;
 	private Button btnSave;
 	private UISynchronizeService uiSynchronizedService;
 	private boolean dirty;
@@ -96,7 +96,7 @@ public class AddNewNoteDialog extends Dialog {
 
 	private Label lblInformation;
 
-	public AddNewNoteDialog(Shell parentShell, AbstractDatabaseService service) {
+	public AddNewNoteDialog(Shell parentShell, DatabaseService service) {
 		super(parentShell);
 		this.databaseService = service;
 		uiSynchronizedService = ApplicationManager.getInstance().getUIServiceManager()

@@ -14,6 +14,8 @@ import org.dizitart.no2.NitriteId;
 import org.dizitart.no2.WriteResult;
 import org.dizitart.no2.filters.Filters;
 
+import com.katalon.platform.api.service.ApplicationManager;
+
 import thanhto.katalon.katalon_notes.constant.CustomQueryConstants;
 import thanhto.katalon.katalon_notes.model.INote;
 import thanhto.katalon.katalon_notes.model.KatalonNote;
@@ -22,18 +24,6 @@ public class NitriteDatabaseController implements IDatabaseController {
 
 	private static final String NOTES_COLLECTION = "notes";
 	private Nitrite db;
-
-	public void initializeDb(String absolutePath) {
-		String pathToDatabase = absolutePath + "/katalon_notes.db";
-		if (db == null || db.isClosed()) {
-			System.out.println("Database is at: " + pathToDatabase);
-			db = Nitrite.builder().compressed().filePath(pathToDatabase).openOrCreate("katalon-notes", "katalon-notes");
-		}
-	}
-
-	public Nitrite getDb() {
-		return db;
-	}
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -119,5 +109,21 @@ public class NitriteDatabaseController implements IDatabaseController {
 			}
 		}
 		return notes;
+	}
+
+	@Override
+	public void openConnection() {
+		String currentProjectPath = ApplicationManager.getInstance().getProjectManager().getCurrentProject()
+				.getFolderLocation();
+		String pathToDatabase = currentProjectPath + "/katalon_notes.db";
+		if (db == null || db.isClosed()) {
+			System.out.println("Database is at: " + pathToDatabase);
+			db = Nitrite.builder().compressed().filePath(pathToDatabase).openOrCreate("katalon-notes", "katalon-notes");
+		}
+	}
+
+	@Override
+	public void closeConnection() {
+		db.close();
 	}
 }

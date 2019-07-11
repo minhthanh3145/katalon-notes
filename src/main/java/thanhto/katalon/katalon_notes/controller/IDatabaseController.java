@@ -5,6 +5,10 @@ import java.util.List;
 import thanhto.katalon.katalon_notes.model.INote;
 
 public interface IDatabaseController {
+	
+	void openConnection();
+	
+	void closeConnection();
 
 	List<INote> getNotesBasedOnCustomQuery(String query);
 
@@ -17,4 +21,5 @@ public interface IDatabaseController {
 	INote getNoteById(Long id);
 
 	List<INote> getNoteByTitle(String title);
+	
 }

@@ -4,15 +4,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.katalon.platform.api.service.ApplicationManager;
-
+import thanhto.katalon.katalon_notes.controller.IDatabaseController;
 import thanhto.katalon.katalon_notes.controller.NitriteDatabaseController;
-import thanhto.katalon.katalon_notes.service.AbstractDatabaseService;
-import thanhto.katalon.katalon_notes.service.NitriteDatabaseService;
+import thanhto.katalon.katalon_notes.exception.DatabaseControllerUnselectedException;
+import thanhto.katalon.katalon_notes.service.DatabaseService;
 
 public class ServiceProvider {
 	private static ServiceProvider _instance;
-	private Map<String, AbstractDatabaseService> serviceMap;
+	private Map<String, DatabaseService> serviceMap;
+	private Map<String, IDatabaseController> controllerMap;
 
 	public static ServiceProvider getInstance() {
 		if (_instance == null) {
@@ -23,25 +23,41 @@ public class ServiceProvider {
 
 	private ServiceProvider() {
 		serviceMap = new HashMap<>();
+		controllerMap = new HashMap<>();
+		controllerMap.put("nitrite", new NitriteDatabaseController());
 	}
 
-	public AbstractDatabaseService getService(String serviceName) {
-		return serviceMap.get(serviceName);
+	/**
+	 * 
+	 * @param serviceName
+	 * @return {@link DatabaseService}
+	 * @throws DatabaseControllerUnselectedException
+	 *             If the selected service has not been given a
+	 *             {@link IDatabaseController} instance yet
+	 */
+	public DatabaseService getAndOpenService(String serviceName) throws DatabaseControllerUnselectedException {
+		DatabaseService service = serviceMap.get(serviceName);
+		if (service.getController() == null) {
+			throw new DatabaseControllerUnselectedException(serviceName);
+		}
+		service.getController().openConnection();
+		return service;
 	}
 
 	public void deregisterAllServices() {
-		for (Entry<String, AbstractDatabaseService> service : serviceMap.entrySet()) {
-			service.getValue().closeConnection();
+		for (Entry<String, DatabaseService> service : serviceMap.entrySet()) {
+			service.getValue().getController().closeConnection();
 		}
 	}
 
 	public void registerAllServices() {
-		AbstractDatabaseService service = new NitriteDatabaseService();
-		NitriteDatabaseController nitriteController = new NitriteDatabaseController();
-		nitriteController.initializeDb(
-				ApplicationManager.getInstance().getProjectManager().getCurrentProject().getFolderLocation());
-		service.setController(nitriteController);
+		DatabaseService service = new DatabaseService();
+		service.setController(getController("nitrite"));
 		serviceMap.put("nitrite", service);
 		System.out.println("Nitrite database service is registed !");
+	}
+
+	public IDatabaseController getController(String key) {
+		return controllerMap.get("nitrite");
 	}
 }

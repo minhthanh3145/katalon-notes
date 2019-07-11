@@ -1,5 +1,6 @@
 package thanhto.katalon.katalon_notes.toolitem;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -12,12 +13,13 @@ import org.eclipse.swt.widgets.MenuItem;
 import com.katalon.platform.api.extension.ToolItemWithMenuDescription;
 
 import thanhto.katalon.katalon_notes.dialog.AddNewNoteDialog;
+import thanhto.katalon.katalon_notes.exception.DatabaseControllerUnselectedException;
 import thanhto.katalon.katalon_notes.provider.ServiceProvider;
-import thanhto.katalon.katalon_notes.service.AbstractDatabaseService;
+import thanhto.katalon.katalon_notes.service.DatabaseService;
 
 public class KatalonNotesToolItemWithMenuDescription implements ToolItemWithMenuDescription {
 	private Menu optionMenu;
-	private AbstractDatabaseService service;
+	private DatabaseService service;
 
 	@Override
 	public Menu getMenu(Control arg0) {
@@ -47,11 +49,15 @@ public class KatalonNotesToolItemWithMenuDescription implements ToolItemWithMenu
 		MenuItem addNewNoteMenuItem = new MenuItem(optionMenu, SWT.PUSH);
 		addNewNoteMenuItem.setText("Open Katalon Notes");
 		addNewNoteMenuItem.setToolTipText("Manage your notes through a single interface");
-		service = ServiceProvider.getInstance().getService("nitrite");
+
 		addNewNoteMenuItem.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				System.out.println(service.toString());
+				try {
+					service = ServiceProvider.getInstance().getAndOpenService("nitrite");
+				} catch (DatabaseControllerUnselectedException exception) {
+					System.out.println(ExceptionUtils.getStackTrace(exception));
+				}
 				AddNewNoteDialog addNewNoteDialog = new AddNewNoteDialog(Display.getCurrent().getActiveShell(),
 						service);
 				if (addNewNoteDialog.open() == Window.OK) {
