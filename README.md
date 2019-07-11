@@ -1,6 +1,6 @@
-# Katalon Studio sample plugin for beginners
+# Katalon Notes
 
-This is a demostrated plugin that listen to `Plugin installation` event and `Katalon Studio execution` event.
+Katalon Notes plug-in that allows you to take notes in-app without having to open a third-party application.
 
 ## Build
 
