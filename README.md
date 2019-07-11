@@ -1,6 +1,11 @@
 # Katalon Notes
 
-Katalon Notes plug-in that allows you to take notes in-app without having to open a third-party application.
+This plug-in allows you to take notes within Katalon Studio without having to open a third-party applications.
+            
+- **Markdown** syntax supported.
+- **Notes can be organized hierarchically**: Notes have parent-child relationship.
+-  **Local database**: Database are stored locally so there's no information leakage. Database are saved in folde *katalon_notes* folder within your current project. 
+-  **Automatic saving**: When switching between notes, changes are automatically saved. You can also manually save changes on the current note. 
 
 ## UI mockup
 ![untitled_page](https://user-images.githubusercontent.com/16775806/61060753-403d1180-a425-11e9-9d92-95276a587ff8.png)
