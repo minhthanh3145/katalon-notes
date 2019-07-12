@@ -28,9 +28,11 @@ public class ServiceProvider {
 	}
 
 	/**
+	 * Return the service with and opened connection
 	 * 
 	 * @param serviceName
-	 * @return {@link DatabaseService}
+	 *            Name of the service
+	 * @return An {@link DatabaseService} instance
 	 * @throws DatabaseControllerUnselectedException
 	 *             If the selected service has not been given a
 	 *             {@link IDatabaseController} instance yet
@@ -44,12 +46,20 @@ public class ServiceProvider {
 		return service;
 	}
 
+	/**
+	 * Close all existing connections from all services
+	 */
 	public void deregisterAllServices() {
 		for (Entry<String, DatabaseService> service : serviceMap.entrySet()) {
 			service.getValue().getController().closeConnection();
 		}
 	}
 
+	/**
+	 * Register services and give them the appropriate database controllers.
+	 * Note that this does not ensure that service connections are opened. See
+	 * {@link ServiceProvider#getAndOpenService}
+	 */
 	public void registerAllServices() {
 		DatabaseService service = new DatabaseService();
 		service.setController(getController("nitrite"));
@@ -58,6 +68,6 @@ public class ServiceProvider {
 	}
 
 	public IDatabaseController getController(String key) {
-		return controllerMap.get("nitrite");
+		return controllerMap.get(key);
 	}
 }
