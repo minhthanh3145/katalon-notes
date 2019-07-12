@@ -27,7 +27,7 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<INote> getNoteByTitle(String title) {
+	public List<INote> getByName(String title) {
 		List<INote> notes = new ArrayList<>();
 		NitriteCollection collection = db.getCollection(NOTES_COLLECTION);
 		Cursor results = collection.find(Filters.eq("title", title));
@@ -45,7 +45,7 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 	}
 
 	@Override
-	public INote createNote(INote note) {
+	public INote create(INote note) {
 		NitriteCollection collection = db.getCollection(NOTES_COLLECTION);
 		Map<String, Object> noteMap = new HashMap<>();
 		noteMap.put("title", note.getTitle());
@@ -59,7 +59,7 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 	}
 
 	@Override
-	public INote updateNote(INote note) {
+	public INote update(INote note) {
 		Document doc = db.getCollection(NOTES_COLLECTION).getById(NitriteId.createId(note.getId()));
 		doc.put("title", note.getTitle());
 		doc.put("content", note.getContent());
@@ -70,7 +70,7 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 	}
 
 	@Override
-	public INote deleteNote(INote note) {
+	public INote delete(INote note) {
 		Document doc = db.getCollection(NOTES_COLLECTION).getById(NitriteId.createId(note.getId()));
 		db.getCollection(NOTES_COLLECTION).remove(doc);
 		return note;
@@ -78,7 +78,7 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public INote getNoteById(Long id) {
+	public INote getById(Long id) {
 		Document doc = db.getCollection(NOTES_COLLECTION).getById(NitriteId.createId(id));
 		if (doc == null) {
 			System.out.println("Document for ID: " + id + " doesn't exist !");
@@ -102,7 +102,7 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 	 * 
 	 */
 	@SuppressWarnings("unchecked")
-	public List<INote> getNotesBasedOnCustomQuery(String query) {
+	public List<INote> getByCustomQuery(String query) {
 		List<INote> notes = new ArrayList<>();
 		if (query.contains(CustomQueryConstants.NOTES_WITHOUT_PARENT)) {
 			Cursor results = db.getCollection(NOTES_COLLECTION).find(Filters.eq("parent", null));

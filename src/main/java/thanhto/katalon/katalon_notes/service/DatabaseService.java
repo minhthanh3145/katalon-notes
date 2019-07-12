@@ -3,7 +3,6 @@ package thanhto.katalon.katalon_notes.service;
 import java.util.List;
 
 import thanhto.katalon.katalon_notes.controller.IDatabaseController;
-import thanhto.katalon.katalon_notes.model.INote;
 
 public class DatabaseService<T> {
 
@@ -17,27 +16,27 @@ public class DatabaseService<T> {
 		return this.controller;
 	}
 
-	public T getNoteById(Long id) {
-		return controller.getNoteById(id);
+	public T getById(Long id) {
+		return controller.getById(id);
 	}
 
-	public List<T> getNoteByTitle(String title) {
-		return controller.getNoteByTitle(title);
+	public List<T> getByName(String title) {
+		return controller.getByName(title);
 	}
 
-	public T createNote(INote note) {
-		return controller.createNote(note);
+	public T create(T note) {
+		return controller.create(note);
 	}
 
-	public T updateNote(INote note) {
-		return controller.updateNote(note);
+	public T update(T note) {
+		return controller.update(note);
 	}
 
-	public T deleteNote(INote note) {
-		return controller.deleteNote(note);
+	public T delete(T note) {
+		return controller.delete(note);
 	}
 
-	public List<T> getNotesBasedOnCustomQuery(String query) {
-		return controller.getNotesBasedOnCustomQuery(query);
+	public List<T> getByCustomQuery(String query) {
+		return controller.getByCustomQuery(query);
 	}
 }

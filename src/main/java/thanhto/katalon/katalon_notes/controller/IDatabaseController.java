@@ -2,7 +2,14 @@ package thanhto.katalon.katalon_notes.controller;
 
 import java.util.List;
 
-import thanhto.katalon.katalon_notes.model.INote;
+/**
+ * A Database controller interface that offers querying along with connection
+ * open/close mechanisms
+ * 
+ * @author thanhto
+ *
+ * @param <T>
+ */
 
 public interface IDatabaseController<T> {
 
@@ -10,16 +17,16 @@ public interface IDatabaseController<T> {
 
 	void closeConnection();
 
-	List<T> getNotesBasedOnCustomQuery(String query);
+	List<T> getByCustomQuery(String query);
 
-	T createNote(INote note);
+	T create(T note);
 
-	T updateNote(INote note);
+	T update(T note);
 
-	T deleteNote(INote id);
+	T delete(T id);
 
-	T getNoteById(Long id);
+	T getById(Long id);
 
-	List<T> getNoteByTitle(String title);
+	List<T> getByName(String title);
 
 }
