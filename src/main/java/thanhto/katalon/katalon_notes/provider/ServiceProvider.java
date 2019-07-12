@@ -7,12 +7,13 @@ import java.util.Map.Entry;
 import thanhto.katalon.katalon_notes.controller.IDatabaseController;
 import thanhto.katalon.katalon_notes.controller.NitriteDatabaseController;
 import thanhto.katalon.katalon_notes.exception.DatabaseControllerUnselectedException;
+import thanhto.katalon.katalon_notes.model.INote;
 import thanhto.katalon.katalon_notes.service.DatabaseService;
 
 public class ServiceProvider {
 	private static ServiceProvider _instance;
-	private Map<String, DatabaseService> serviceMap;
-	private Map<String, IDatabaseController> controllerMap;
+	private Map<String, DatabaseService<INote>> serviceMap;
+	private Map<String, IDatabaseController<INote>> noteDatabaseControllerMap;
 
 	public static ServiceProvider getInstance() {
 		if (_instance == null) {
@@ -23,8 +24,8 @@ public class ServiceProvider {
 
 	private ServiceProvider() {
 		serviceMap = new HashMap<>();
-		controllerMap = new HashMap<>();
-		controllerMap.put("nitrite", new NitriteDatabaseController());
+		noteDatabaseControllerMap = new HashMap<>();
+		noteDatabaseControllerMap.put("nitrite", new NitriteDatabaseController());
 	}
 
 	/**
@@ -37,8 +38,8 @@ public class ServiceProvider {
 	 *             If the selected service has not been given a
 	 *             {@link IDatabaseController} instance yet
 	 */
-	public DatabaseService getAndOpenService(String serviceName) throws DatabaseControllerUnselectedException {
-		DatabaseService service = serviceMap.get(serviceName);
+	public DatabaseService<INote> getAndOpenService(String serviceName) throws DatabaseControllerUnselectedException {
+		DatabaseService<INote> service = serviceMap.get(serviceName);
 		if (service.getController() == null) {
 			throw new DatabaseControllerUnselectedException(serviceName);
 		}
@@ -50,7 +51,7 @@ public class ServiceProvider {
 	 * Close all existing connections from all services
 	 */
 	public void deregisterAllServices() {
-		for (Entry<String, DatabaseService> service : serviceMap.entrySet()) {
+		for (Entry<String, DatabaseService<INote>> service : serviceMap.entrySet()) {
 			service.getValue().getController().closeConnection();
 		}
 	}
@@ -61,13 +62,13 @@ public class ServiceProvider {
 	 * {@link ServiceProvider#getAndOpenService}
 	 */
 	public void registerAllServices() {
-		DatabaseService service = new DatabaseService();
+		DatabaseService<INote> service = new DatabaseService<INote>();
 		service.setController(getController("nitrite"));
 		serviceMap.put("nitrite", service);
 		System.out.println("Nitrite database service is registed !");
 	}
 
-	public IDatabaseController getController(String key) {
-		return controllerMap.get(key);
+	public IDatabaseController<INote> getController(String key) {
+		return noteDatabaseControllerMap.get(key);
 	}
 }

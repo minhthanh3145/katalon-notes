@@ -45,7 +45,7 @@ import thanhto.katalon.katalon_notes.service.DatabaseService;
 import thanhto.katalon.katalon_notes.tree.KatalonNotesTreeContentProvider;
 import thanhto.katalon.katalon_notes.tree.KatalonNotesTreeLabelProvider;
 
-public class AddNewNoteDialog extends Dialog {
+public class KatalonNotesDialog extends Dialog {
 
 	private TreeViewer tvKatalonNotes;
 	private Composite mainComposite;
@@ -57,7 +57,7 @@ public class AddNewNoteDialog extends Dialog {
 	private Browser browserPreview;
 	private Composite descriptionPreviewComposite;
 	private INote selectedNote;
-	private DatabaseService databaseService;
+	private DatabaseService<INote> databaseService;
 	private Button btnSave;
 	private UISynchronizeService uiSynchronizedService;
 	private boolean dirty;
@@ -96,7 +96,7 @@ public class AddNewNoteDialog extends Dialog {
 
 	private Label lblInformation;
 
-	public AddNewNoteDialog(Shell parentShell, DatabaseService service) {
+	public KatalonNotesDialog(Shell parentShell, DatabaseService<INote> service) {
 		super(parentShell);
 		this.databaseService = service;
 		uiSynchronizedService = ApplicationManager.getInstance().getUIServiceManager()
@@ -119,8 +119,8 @@ public class AddNewNoteDialog extends Dialog {
 	protected Control createDialogArea(Composite parent) {
 		mainComposite = new Composite(parent, SWT.NONE);
 		GridData gdMainComposite = new GridData(SWT.FILL, SWT.FILL, true, true);
-		gdMainComposite.widthHint = 1000;
-		gdMainComposite.heightHint = 600;
+		gdMainComposite.widthHint = 1200;
+		gdMainComposite.heightHint = 800;
 		mainComposite.setLayoutData(gdMainComposite);
 		GridLayout gLMainComposite = new GridLayout(1, false);
 		gLMainComposite.marginWidth = 5;
@@ -147,7 +147,7 @@ public class AddNewNoteDialog extends Dialog {
 
 		treeViewerComposite = new Composite(treeViewerAndDetailComposite, SWT.NONE);
 		GridData gdTreeViewer = new GridData(SWT.FILL, SWT.FILL, false, true);
-		gdTreeViewer.widthHint = 200;
+		gdTreeViewer.widthHint = 300;
 		treeViewerComposite.setLayoutData(gdTreeViewer);
 		treeViewerComposite.setLayout(new GridLayout(1, false));
 

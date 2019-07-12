@@ -12,14 +12,15 @@ import org.eclipse.swt.widgets.MenuItem;
 
 import com.katalon.platform.api.extension.ToolItemWithMenuDescription;
 
-import thanhto.katalon.katalon_notes.dialog.AddNewNoteDialog;
+import thanhto.katalon.katalon_notes.dialog.KatalonNotesDialog;
 import thanhto.katalon.katalon_notes.exception.DatabaseControllerUnselectedException;
+import thanhto.katalon.katalon_notes.model.INote;
 import thanhto.katalon.katalon_notes.provider.ServiceProvider;
 import thanhto.katalon.katalon_notes.service.DatabaseService;
 
 public class KatalonNotesToolItemWithMenuDescription implements ToolItemWithMenuDescription {
 	private Menu optionMenu;
-	private DatabaseService service;
+	private DatabaseService<INote> service;
 
 	@Override
 	public Menu getMenu(Control arg0) {
@@ -58,7 +59,7 @@ public class KatalonNotesToolItemWithMenuDescription implements ToolItemWithMenu
 				} catch (DatabaseControllerUnselectedException exception) {
 					System.out.println(ExceptionUtils.getStackTrace(exception));
 				}
-				AddNewNoteDialog addNewNoteDialog = new AddNewNoteDialog(Display.getCurrent().getActiveShell(),
+				KatalonNotesDialog addNewNoteDialog = new KatalonNotesDialog(Display.getCurrent().getActiveShell(),
 						service);
 				if (addNewNoteDialog.open() == Window.OK) {
 

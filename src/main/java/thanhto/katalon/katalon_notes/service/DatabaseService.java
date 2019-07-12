@@ -5,39 +5,39 @@ import java.util.List;
 import thanhto.katalon.katalon_notes.controller.IDatabaseController;
 import thanhto.katalon.katalon_notes.model.INote;
 
-public class DatabaseService {
+public class DatabaseService<T> {
 
-	IDatabaseController controller;
+	IDatabaseController<T> controller;
 
-	public void setController(IDatabaseController controller) {
+	public void setController(IDatabaseController<T> controller) {
 		this.controller = controller;
 	}
 
-	public IDatabaseController getController() {
+	public IDatabaseController<T> getController() {
 		return this.controller;
 	}
 
-	public INote getNoteById(Long id) {
+	public T getNoteById(Long id) {
 		return controller.getNoteById(id);
 	}
 
-	public List<INote> getNoteByTitle(String title) {
+	public List<T> getNoteByTitle(String title) {
 		return controller.getNoteByTitle(title);
 	}
 
-	public INote createNote(INote note) {
+	public T createNote(INote note) {
 		return controller.createNote(note);
 	}
 
-	public INote updateNote(INote note) {
+	public T updateNote(INote note) {
 		return controller.updateNote(note);
 	}
 
-	public INote deleteNote(INote note) {
+	public T deleteNote(INote note) {
 		return controller.deleteNote(note);
 	}
 
-	public List<INote> getNotesBasedOnCustomQuery(String query) {
+	public List<T> getNotesBasedOnCustomQuery(String query) {
 		return controller.getNotesBasedOnCustomQuery(query);
 	}
 }

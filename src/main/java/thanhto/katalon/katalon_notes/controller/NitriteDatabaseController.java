@@ -20,7 +20,7 @@ import thanhto.katalon.katalon_notes.constant.CustomQueryConstants;
 import thanhto.katalon.katalon_notes.model.INote;
 import thanhto.katalon.katalon_notes.model.KatalonNote;
 
-public class NitriteDatabaseController implements IDatabaseController {
+public class NitriteDatabaseController implements IDatabaseController<INote> {
 
 	private static final String NOTES_COLLECTION = "notes";
 	private Nitrite db;
@@ -92,8 +92,16 @@ public class NitriteDatabaseController implements IDatabaseController {
 		return note;
 	}
 
+	/**
+	 * Query notes based on some built-in conditions ( @see
+	 * {@link CustomQueryConstants})
+	 * 
+	 * @param query
+	 *            A query string
+	 * @return A list of {@link INote} satisfying the query
+	 * 
+	 */
 	@SuppressWarnings("unchecked")
-	@Override
 	public List<INote> getNotesBasedOnCustomQuery(String query) {
 		List<INote> notes = new ArrayList<>();
 		if (query.contains(CustomQueryConstants.NOTES_WITHOUT_PARENT)) {
