@@ -58,17 +58,11 @@ public class KatalonNotesDialog extends Dialog {
 	private Browser browserPreview;
 	private Composite descriptionPreviewComposite;
 	private INote selectedNote;
-	private Button btnSave;
 	private boolean dirty;
 	private Label lblInformation;
-	private MenuItem deleteThisNoteMenuItem;
-	private MenuItem refreshMenuItem;
-	private MenuItem addNoteMenuItem;
 
 	private UISynchronizeService uiSynchronizedService;
 	private DatabaseService<INote> databaseService;
-	private MenuManager menuMgr;
-	private Menu menu;
 
 	public KatalonNotesDialog(Shell parentShell, DatabaseService<INote> service) {
 		super(parentShell);
@@ -133,22 +127,22 @@ public class KatalonNotesDialog extends Dialog {
 		addContextMenuToTree();
 	}
 
-	private void initializeMenuItemsForContextMenu(Menu menu, INote note) {
-		addNoteMenuItem = new MenuItem(menu, SWT.NONE);
-		addNoteMenuItem.setText("Add a child note");
-
-		deleteThisNoteMenuItem = new MenuItem(menu, SWT.NONE);
-		deleteThisNoteMenuItem.setText("Delete this note");
-
-		refreshMenuItem = new MenuItem(menu, SWT.NONE);
-		refreshMenuItem.setText("Refresh");
-
+	private void addMenuItemsForContextMenu(Menu menu) {
+		MenuItem add = new MenuItem(menu, SWT.NONE);
+		add.setText("Add a child note");
+		MenuItem delete = new MenuItem(menu, SWT.NONE);
+		delete.setText("Delete this note");
+		MenuItem refresh = new MenuItem(menu, SWT.NONE);
+		refresh.setText("Refresh");
+		registerContextMenuItemListeners(add, delete, refresh);
 	}
 
 	private void addContextMenuToTree() {
-		menuMgr = new MenuManager();
-		menu = menuMgr.createContextMenu(tvKatalonNotes.getControl());
+		MenuManager menuMgr = new MenuManager();
+		Menu menu = menuMgr.createContextMenu(tvKatalonNotes.getControl());
+		addMenuItemsForContextMenu(menu);
 		menuMgr.setRemoveAllWhenShown(true);
+		registerContextMenuListener(menuMgr, menu);
 		tvKatalonNotes.getControl().setMenu(menu);
 	}
 
@@ -190,8 +184,18 @@ public class KatalonNotesDialog extends Dialog {
 		// Change parent layout data to fill the whole bar
 		parent.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		parent.setLayout(new GridLayout(2, false));
-		btnSave = createButton(parent, IDialogConstants.NO_ID, "Update", true);
+		Button btnSave = createButton(parent, IDialogConstants.NO_ID, "Update", true);
 		btnSave.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+		btnSave.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				uiSynchronizedService.asyncExec(() -> {
+					databaseService.update(getSelectedNote());
+					lblInformation.setText(selectedNote.getTitle() + " has been updated !");
+				});
+			}
+		});
+
 		lblInformation = new Label(parent, SWT.NONE);
 		lblInformation.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLUE));
 		lblInformation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
@@ -220,25 +224,102 @@ public class KatalonNotesDialog extends Dialog {
 		return this.selectedNote;
 	}
 
-	private void registerNotesListener() {
+	private void registerContextMenuListener(MenuManager menuMgr, Menu menu) {
+		menu.addMenuListener(new MenuAdapter() {
+			public void menuShown(MenuEvent e) {
+				MenuItem[] items = menu.getItems();
+				for (int i = 0; i < items.length; i++) {
+					items[i].dispose();
+				}
+				addMenuItemsForContextMenu(menu);
+			}
+		});
 
-		INote note = getSelectedNote();
+		menuMgr.addMenuListener(new IMenuListener() {
+			@Override
+			public void menuAboutToShow(IMenuManager manager) {
+				if (tvKatalonNotes.getSelection().isEmpty()) {
+					// If click on empty space, set currently selected note to
+					// null
+					setSelectedNote(null);
+					return;
+				}
 
-		btnSave.addSelectionListener(new SelectionAdapter() {
+				if (tvKatalonNotes.getSelection() instanceof IStructuredSelection) {
+					IStructuredSelection selection = (IStructuredSelection) tvKatalonNotes.getSelection();
+					setSelectedNote((INote) selection.getFirstElement());
+				}
+			}
+		});
+	}
+
+	private void registerContextMenuItemListeners(MenuItem add, MenuItem delete, MenuItem refresh) {
+
+		add.addSelectionListener(new SelectionAdapter() {
+			@SuppressWarnings("unchecked")
 			@Override
 			public void widgetSelected(SelectionEvent e) {
+				INote note = getSelectedNote();
 				uiSynchronizedService.asyncExec(() -> {
-					databaseService.update(getSelectedNote());
-					lblInformation.setText(selectedNote.getTitle() + " has been updated !");
+					INote currentNote = null;
+					if (note == null) {
+						KatalonNote newNote = new KatalonNote("Default title", "Default content");
+						currentNote = databaseService.create(newNote);
+						setSelectedNote(currentNote);
+						((List<INote>) tvKatalonNotes.getInput()).add(currentNote);
+						tvKatalonNotes.refresh();
+						return;
+					} else if (note.getId() == null) {
+						currentNote = databaseService.create(note);
+					} else {
+						currentNote = note;
+					}
+
+					KatalonNote newNote = new KatalonNote("Default title", "Default content");
+					newNote.setParent(currentNote);
+					currentNote.getChildNotes().add(newNote);
+					databaseService.create(newNote);
+					databaseService.update(currentNote);
+					setSelectedNote(newNote);
 					tvKatalonNotes.refresh();
 				});
 			}
 		});
 
+		delete.addSelectionListener(new SelectionAdapter() {
+			@SuppressWarnings("unchecked")
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				INote note = getSelectedNote();
+				uiSynchronizedService.asyncExec(() -> {
+					INote parentNote = note.getParent();
+					databaseService.delete(note);
+					if (parentNote != null) {
+						parentNote.getChildNotes().remove(note);
+						databaseService.update(parentNote);
+					}
+					((List<INote>) tvKatalonNotes.getInput()).remove(note);
+					tvKatalonNotes.refresh();
+				});
+			}
+		});
+
+		refresh.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				uiSynchronizedService.asyncExec(() -> {
+					tvKatalonNotes.refresh();
+				});
+			}
+		});
+	}
+
+	private void registerNotesListener() {
 		tvKatalonNotes.getTree().addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (tvKatalonNotes.getSelection() instanceof IStructuredSelection) {
+					INote note = getSelectedNote();
 					IStructuredSelection selection = (IStructuredSelection) tvKatalonNotes.getSelection();
 					INote newlySelectedNote = (INote) selection.getFirstElement();
 
@@ -314,85 +395,6 @@ public class KatalonNotesDialog extends Dialog {
 			public void modifyText(ModifyEvent e) {
 				getSelectedNote().setContent(txtContent.getText());
 				dirty = true;
-			}
-		});
-
-		addNoteMenuItem.addSelectionListener(new SelectionAdapter() {
-			@SuppressWarnings("unchecked")
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				uiSynchronizedService.asyncExec(() -> {
-					INote currentNote = null;
-					if (note == null) {
-						KatalonNote newNote = new KatalonNote("Default title", "Default content");
-						currentNote = databaseService.create(newNote);
-						setSelectedNote(currentNote);
-						((List<INote>) tvKatalonNotes.getInput()).add(currentNote);
-						tvKatalonNotes.refresh();
-						return;
-					} else if (note.getId() == null) {
-						currentNote = databaseService.create(note);
-					}
-
-					KatalonNote newNote = new KatalonNote("Default title", "Default content");
-					newNote.setParent(currentNote);
-					currentNote.getChildNotes().add(newNote);
-					databaseService.create(newNote);
-					databaseService.update(currentNote);
-					setSelectedNote(newNote);
-					tvKatalonNotes.refresh();
-				});
-			}
-		});
-
-		deleteThisNoteMenuItem.addSelectionListener(new SelectionAdapter() {
-			@SuppressWarnings("unchecked")
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				uiSynchronizedService.asyncExec(() -> {
-					INote parentNote = note.getParent();
-					databaseService.delete(note);
-					if (parentNote != null) {
-						parentNote.getChildNotes().remove(note);
-						databaseService.update(parentNote);
-					}
-					((List<INote>) tvKatalonNotes.getInput()).remove(note);
-					tvKatalonNotes.refresh();
-				});
-			}
-		});
-
-		refreshMenuItem.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				uiSynchronizedService.asyncExec(() -> {
-					tvKatalonNotes.refresh();
-				});
-			}
-		});
-
-		menu.addMenuListener(new MenuAdapter() {
-			public void menuShown(MenuEvent e) {
-				MenuItem[] items = menu.getItems();
-				for (int i = 0; i < items.length; i++) {
-					items[i].dispose();
-				}
-				initializeMenuItemsForContextMenu(menu, selectedNote);
-			}
-		});
-
-		menuMgr.addMenuListener(new IMenuListener() {
-			@Override
-			public void menuAboutToShow(IMenuManager manager) {
-				if (tvKatalonNotes.getSelection().isEmpty()) {
-					setSelectedNote(null);
-					return;
-				}
-
-				if (tvKatalonNotes.getSelection() instanceof IStructuredSelection) {
-					IStructuredSelection selection = (IStructuredSelection) tvKatalonNotes.getSelection();
-					setSelectedNote((INote) selection.getFirstElement());
-				}
 			}
 		});
 	}
