@@ -73,6 +73,12 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 	public INote delete(INote note) {
 		Document doc = db.getCollection(NOTES_COLLECTION).getById(NitriteId.createId(note.getId()));
 		db.getCollection(NOTES_COLLECTION).remove(doc);
+		List<INote> childNotes = note.getChildNotes();
+		if (childNotes != null) {
+			for (INote childNote : childNotes) {
+				delete(childNote);
+			}
+		}
 		return note;
 	}
 
