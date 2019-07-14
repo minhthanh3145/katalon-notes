@@ -10,6 +10,12 @@ import thanhto.katalon.katalon_notes.exception.DatabaseControllerUnselectedExcep
 import thanhto.katalon.katalon_notes.model.INote;
 import thanhto.katalon.katalon_notes.service.DatabaseService;
 
+/**
+ * A central place to provide services across Katalon Notes
+ * 
+ * @author thanhto
+ *
+ */
 public class ServiceProvider {
 	private static ServiceProvider _instance;
 	private Map<String, DatabaseService<INote>> serviceMap;
@@ -29,7 +35,8 @@ public class ServiceProvider {
 	}
 
 	/**
-	 * Return the service with and opened connection
+	 * Open the connection of the database associated with the needed service
+	 * and return that service
 	 * 
 	 * @param serviceName
 	 *            Name of the service
@@ -38,7 +45,7 @@ public class ServiceProvider {
 	 *             If the selected service has not been given a
 	 *             {@link IDatabaseController} instance yet
 	 */
-	public DatabaseService<INote> getAndOpenService(String serviceName) throws DatabaseControllerUnselectedException {
+	public DatabaseService<INote> getDatabaseService(String serviceName) throws DatabaseControllerUnselectedException {
 		DatabaseService<INote> service = serviceMap.get(serviceName);
 		if (service.getController() == null) {
 			throw new DatabaseControllerUnselectedException(serviceName);
@@ -58,14 +65,13 @@ public class ServiceProvider {
 
 	/**
 	 * Register services and give them the appropriate database controllers.
-	 * Note that this does not ensure that service connections are opened. See
-	 * {@link ServiceProvider#getAndOpenService}
+	 * Note database connections are lazily opened (delayed until the first time
+	 * they're needed) {@link ServiceProvider#getAndOpenService}
 	 */
 	public void registerAllServices() {
 		DatabaseService<INote> service = new DatabaseService<INote>();
 		service.setController(getController("nitrite"));
 		serviceMap.put("nitrite", service);
-		System.out.println("Nitrite database service is registed !");
 	}
 
 	public IDatabaseController<INote> getController(String key) {

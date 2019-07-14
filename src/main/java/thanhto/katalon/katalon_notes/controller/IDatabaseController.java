@@ -13,8 +13,14 @@ import java.util.List;
 
 public interface IDatabaseController<T> {
 
+	/**
+	 * Open the connection if one hasn't existed, otherwise do nothing
+	 */
 	void openConnection();
 
+	/**
+	 * Close the connection if previously opened, otherwise do nothing
+	 */
 	void closeConnection();
 
 	List<T> getByCustomQuery(String query);

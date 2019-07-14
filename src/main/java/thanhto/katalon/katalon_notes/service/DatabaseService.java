@@ -4,6 +4,15 @@ import java.util.List;
 
 import thanhto.katalon.katalon_notes.controller.IDatabaseController;
 
+/**
+ * Controller-agnostic service that delegate method calls to whatever
+ * controllers were given. This service should be obtained through
+ * ServiceProvider to ensure that appropriate controllers are given
+ * 
+ * @author thanhto
+ *
+ * @param <T>
+ */
 public class DatabaseService<T> {
 
 	IDatabaseController<T> controller;

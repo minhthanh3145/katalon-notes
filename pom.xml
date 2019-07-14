@@ -11,7 +11,7 @@
 	</parent>
 
 	<groupId>thanhto.katalon</groupId>
-	<version>1.0.2</version>
+	<version>1.0.3</version>
 
 	<packaging>bundle</packaging>
 
@@ -32,10 +32,47 @@
 			<artifactId>nitrite</artifactId>
 			<version>3.2.0</version>
 		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13-beta-3</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>3.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.atlassian.commonmark</groupId>
+			<artifactId>commonmark-ext-autolink</artifactId>
+			<version>0.12.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.atlassian.commonmark</groupId>
+			<artifactId>commonmark-ext-heading-anchor</artifactId>
+			<version>0.12.1</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>28.0-jre</version>
+		</dependency>
+		<dependency>
+			<groupId>org.reflections</groupId>
+			<artifactId>reflections</artifactId>
+			<version>0.9.11</version>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.22.0</version>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
@@ -67,7 +104,7 @@
 						<DynamicImport-Package>*</DynamicImport-Package>
 						<_noee>true</_noee>
 						<_nouse>true</_nouse>
-						<_exportcontents>*</_exportcontents>						
+						<_exportcontents>*</_exportcontents>
 						<Export-Package>thanhto.katalon.katalon_notes*</Export-Package>
 					</instructions>
 				</configuration>

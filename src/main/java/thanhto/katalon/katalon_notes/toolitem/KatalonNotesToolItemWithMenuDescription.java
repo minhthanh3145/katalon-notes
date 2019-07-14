@@ -55,7 +55,7 @@ public class KatalonNotesToolItemWithMenuDescription implements ToolItemWithMenu
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				try {
-					service = ServiceProvider.getInstance().getAndOpenService("nitrite");
+					service = ServiceProvider.getInstance().getDatabaseService("nitrite");
 				} catch (DatabaseControllerUnselectedException exception) {
 					System.out.println(ExceptionUtils.getStackTrace(exception));
 				}
