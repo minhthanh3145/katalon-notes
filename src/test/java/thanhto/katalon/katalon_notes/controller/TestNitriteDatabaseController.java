@@ -6,13 +6,16 @@ import java.util.List;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.mockito.Mockito;
 
 import thanhto.katalon.katalon_notes.builder.NoteBuilder;
 import thanhto.katalon.katalon_notes.model.INote;
 import thanhto.katalon.katalon_notes.util.NoteUtils;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestNitriteDatabaseController {
 
 	static NitriteDatabaseController controller;

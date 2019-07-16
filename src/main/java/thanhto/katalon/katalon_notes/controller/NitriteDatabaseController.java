@@ -29,7 +29,7 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 	@Override
 	public List<INote> getByName(String title) {
 		List<INote> notes = new ArrayList<>();
-		Cursor results = collection.find();
+		Cursor results = collection.find(Filters.eq("title", title));
 		Iterator<Document> it = results.iterator();
 		while (it.hasNext()) {
 			Document doc = it.next();
@@ -41,10 +41,15 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 
 	@Override
 	public INote create(INote note) {
+		if (note.getId() != null) {
+			return null;
+		}
 		Document doc = NoteUtils.from(note);
 		WriteResult result = collection.insert(doc);
 		note.setId(result.iterator().next().getIdValue());
-		db.commit();
+		for (INote childNote : note.getChildNotes()) {
+			create(childNote);
+		}
 		return note;
 	}
 
@@ -81,7 +86,7 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 		collection.update(doc);
 
 		INote parent = note.getParent();
-		while (parent.getParent() != null) {
+		while (parent != null) {
 			recursiveAscentUpdate(parent);
 			parent = parent.getParent();
 		}
