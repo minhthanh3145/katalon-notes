@@ -12,6 +12,7 @@ import org.junit.runners.MethodSorters;
 import org.mockito.Mockito;
 
 import thanhto.katalon.katalon_notes.builder.NoteBuilder;
+import thanhto.katalon.katalon_notes.constant.CustomQueryConstants;
 import thanhto.katalon.katalon_notes.model.INote;
 import thanhto.katalon.katalon_notes.util.NoteUtils;
 
@@ -33,6 +34,8 @@ public class TestNitriteDatabaseController {
 		testUpdateWithoutMovingSubTree();
 		testUpdateWithMovingSubtree();
 		testDeleteWithoutSubtree();
+		testDeleteWithSubtree();
+		testGetNotesWithoutParent();
 	}
 
 	public void testCreate() {
@@ -173,7 +176,7 @@ public class TestNitriteDatabaseController {
 				.addChildNote(NoteUtils.from("d", "d"))
 				.build();
 
-		List<INote> notesToUpdate = controller.getByName("d");
+		List<INote> notesToUpdate = controller.getByName("a3");
 		Assert.assertEquals(1, notesToUpdate.size());
 
 		INote noteToUpdate = notesToUpdate.get(0);
@@ -184,6 +187,40 @@ public class TestNitriteDatabaseController {
 
 		INote actual = rootNotes.get(0);
 		Assert.assertTrue(NoteUtils.compare(actual, expected));
+	}
+	
+	public void testGetNotesWithoutParent() {
+		INote expected1 = new NoteBuilder("root", "root")
+				.addChildNote(new NoteBuilder("a", "a")
+						.addChildNote(NoteUtils.from("a1", "a1"))
+						.addChildNote(NoteUtils.from("a2", "a2"))
+						.build())
+				.addChildNote(NoteUtils.from("b", "b"))
+				.addChildNote(NoteUtils.from("c", "c"))
+				.addChildNote(NoteUtils.from("d", "d"))
+				.build();
+		
+		
+		INote expected2 =  new NoteBuilder("root", "root")
+				.addChildNote(new NoteBuilder("a", "a")
+						.addChildNote(NoteUtils.from("a1", "a1"))
+						.addChildNote(NoteUtils.from("a2", "a2"))
+						.build())
+				.addChildNote(NoteUtils.from("b", "b"))
+				.addChildNote(NoteUtils.from("c", "c"))
+				.addChildNote(NoteUtils.from("d", "d"))
+				.build();
+		
+		controller.create(expected2);
+		
+		List<INote> rootNotes = controller.getByCustomQuery(CustomQueryConstants.NOTES_WITHOUT_PARENT);
+		Assert.assertEquals(2, rootNotes.size());
+		
+		INote actual1 = rootNotes.get(0);
+		Assert.assertTrue(NoteUtils.compare(actual1, expected1));		
+		
+		INote actual2 = rootNotes.get(0);
+		Assert.assertTrue(NoteUtils.compare(actual2, expected1));		
 	}
 	
 	@AfterClass
