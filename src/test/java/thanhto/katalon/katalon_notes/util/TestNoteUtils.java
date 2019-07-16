@@ -1,3 +1,4 @@
+package thanhto.katalon.katalon_notes.util;
 import org.junit.Assert;
 import org.junit.Test;
 
