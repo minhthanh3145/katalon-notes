@@ -26,8 +26,15 @@ public class TestNitriteDatabaseController {
 		Mockito.doReturn(new File("src/test/resources").getAbsolutePath()).when(controller).getCurrentProjectPath();
 		controller.openConnection();
 	}
+	
+	@Test public void testSuite() {
+		testCreate();
+		testGetByName();
+		testUpdateWithoutMovingSubTree();
+		testUpdateWithMovingSubtree();
+		testDeleteWithoutSubtree();
+	}
 
-	@Test
 	public void testCreate() {
 		INote rootNoteExpected = new NoteBuilder("root", "root")
 				.addChildNote(new NoteBuilder("a", "a").addChildNote(NoteUtils.from("a1", "a1"))
@@ -45,9 +52,9 @@ public class TestNitriteDatabaseController {
 		Assert.assertTrue(NoteUtils.compare(rootNoteFromId, actual));
 	}
 
-	@Test
+//	@Test
 	public void testGetByName() {
-		INote rootNoteExpected = new NoteBuilder("root", "root")
+		INote expected = new NoteBuilder("root", "root")
 				.addChildNote(new NoteBuilder("a", "a").addChildNote(NoteUtils.from("a1", "a1"))
 						.addChildNote(NoteUtils.from("a2", "a2"))
 						.addChildNote(new NoteBuilder("a3", "a3").addChildNote(NoteUtils.from("a31", "a31"))
@@ -58,36 +65,127 @@ public class TestNitriteDatabaseController {
 
 		List<INote> notes = controller.getByName("root");
 		Assert.assertEquals(1, notes.size());
-		INote rootNoteFromName = notes.get(0);
-		Assert.assertTrue(NoteUtils.compare(rootNoteFromName, rootNoteExpected));
+		INote actual = notes.get(0);
+		Assert.assertTrue(NoteUtils.compare(actual, expected));
 	}
 
-	@Test
-	public void testUpdate() {
-		INote afterUpdateExpected = new NoteBuilder("root", "root")
-				.addChildNote(new NoteBuilder("a", "a").addChildNote(NoteUtils.from("a1", "a1"))
-						.addChildNote(NoteUtils.from("after update", "a2"))
-						.addChildNote(new NoteBuilder("a3", "a3").addChildNote(NoteUtils.from("a31", "a31"))
-								.addChildNote(NoteUtils.from("a32", "a32")).build())
-						.addChildNote(NoteUtils.from("a4", "a4")).build())
-				.addChildNote(NoteUtils.from("b", "b")).addChildNote(NoteUtils.from("c", "c"))
+//	@Test
+	public void testUpdateWithoutMovingSubTree() {
+		INote expected = new NoteBuilder("root", "root")
+				.addChildNote(new NoteBuilder("a", "a")
+						.addChildNote(NoteUtils.from("a1", "a1"))
+						.addChildNote(NoteUtils.from("a2", "a2"))
+						.addChildNote(new NoteBuilder("a3", "a3")
+								.addChildNote(NoteUtils.from("a31", "a31"))
+								.addChildNote(NoteUtils.from("a32", "a32"))
+								.build())
+						.addChildNote(NoteUtils.from("After Update", "a4")).build())
+				.addChildNote(NoteUtils.from("b", "b"))
+				.addChildNote(NoteUtils.from("c", "c"))
 				.addChildNote(NoteUtils.from("d", "d")).build();
 
-		List<INote> notesToUpdate = controller.getByName("a2");
+		List<INote> notesToUpdate = controller.getByName("a4");
 		Assert.assertEquals(1, notesToUpdate.size());
 
 		INote noteToUpdate = notesToUpdate.get(0);
-		noteToUpdate.setTitle("after update");
+		noteToUpdate.setTitle("After Update");
 		controller.update(noteToUpdate);
 
 		List<INote> rootNotes = controller.getByName("root");
 		Assert.assertEquals(1, rootNotes.size());
 
-		INote afterUpdateActual = rootNotes.get(0);
-		Assert.assertTrue(NoteUtils.compare(afterUpdateActual, afterUpdateExpected));
-
+		INote actual = rootNotes.get(0);
+		Assert.assertTrue(NoteUtils.compare(actual, expected));
 	}
 
+//	@Test
+	public void testUpdateWithMovingSubtree() {
+		INote expected = new NoteBuilder("root", "root")
+				.addChildNote(new NoteBuilder("a", "a")
+						.addChildNote(NoteUtils.from("a1", "a1"))
+						.addChildNote(NoteUtils.from("a2", "a2"))
+						.addChildNote(NoteUtils.from("After Update", "a4"))
+						.build())
+				.addChildNote(NoteUtils.from("b", "b"))
+				.addChildNote(NoteUtils.from("c", "c"))
+				.addChildNote(new NoteBuilder("d", "d")
+						.addChildNote(new NoteBuilder("a3", "a3")
+								.addChildNote(NoteUtils.from("a31", "a31"))
+								.addChildNote(NoteUtils.from("a32", "a32")).build())
+						.build())
+				.build();
+
+		List<INote> notesToUpdate = controller.getByName("a3");
+		Assert.assertEquals(1, notesToUpdate.size());
+		
+		List<INote> notesToMoveSubtreeTo = controller.getByName("d");
+		Assert.assertEquals(1, notesToMoveSubtreeTo.size());
+		
+		INote noteToMoveSubtreeTo = notesToMoveSubtreeTo.get(0);
+		INote noteToUpdate = notesToUpdate.get(0);
+		noteToUpdate.setParent(noteToMoveSubtreeTo);
+		controller.update(noteToUpdate);
+
+		List<INote> rootNotes = controller.getByName("root");
+		Assert.assertEquals(1, rootNotes.size());
+
+		INote actual = rootNotes.get(0);
+		Assert.assertTrue(NoteUtils.compare(actual, expected));
+	}
+
+	// @Test
+	public void testDeleteWithoutSubtree() {
+		INote expected = new NoteBuilder("root", "root")
+				.addChildNote(new NoteBuilder("a", "a")
+						.addChildNote(NoteUtils.from("a1", "a1"))
+						.addChildNote(NoteUtils.from("a2", "a2"))
+						.build())
+				.addChildNote(NoteUtils.from("b", "b"))
+				.addChildNote(NoteUtils.from("c", "c"))
+				.addChildNote(new NoteBuilder("d", "d")
+						.addChildNote(new NoteBuilder("a3", "a3")
+								.addChildNote(NoteUtils.from("a31", "a31"))
+								.addChildNote(NoteUtils.from("a32", "a32")).build())
+						.build())
+				.build();
+
+		List<INote> notesToDelete = controller.getByName("After Update");
+		Assert.assertEquals(1, notesToDelete.size());
+
+		INote noteToDelete = notesToDelete.get(0);
+		controller.delete(noteToDelete);
+
+		List<INote> rootNotes = controller.getByName("root");
+		Assert.assertEquals(1, rootNotes.size());
+
+		INote actual = rootNotes.get(0);
+		Assert.assertTrue(NoteUtils.compare(actual, expected));
+	}
+
+	public void testDeleteWithSubtree() {
+		INote expected = new NoteBuilder("root", "root")
+				.addChildNote(new NoteBuilder("a", "a")
+						.addChildNote(NoteUtils.from("a1", "a1"))
+						.addChildNote(NoteUtils.from("a2", "a2"))
+						.build())
+				.addChildNote(NoteUtils.from("b", "b"))
+				.addChildNote(NoteUtils.from("c", "c"))
+				.addChildNote(NoteUtils.from("d", "d"))
+				.build();
+
+		List<INote> notesToUpdate = controller.getByName("d");
+		Assert.assertEquals(1, notesToUpdate.size());
+
+		INote noteToUpdate = notesToUpdate.get(0);
+		controller.delete(noteToUpdate);
+
+		List<INote> rootNotes = controller.getByName("root");
+		Assert.assertEquals(1, rootNotes.size());
+
+		INote actual = rootNotes.get(0);
+		Assert.assertTrue(NoteUtils.compare(actual, expected));
+	}
+	
 	@AfterClass
 	public static void tearDown() {
 		controller.closeConnection();

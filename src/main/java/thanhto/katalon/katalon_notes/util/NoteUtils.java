@@ -29,6 +29,14 @@ public class NoteUtils {
 		return to;
 	}
 
+	public static void copy(INote from, INote to) {
+		to.setId(from.getId());
+		to.setTitle(from.getTitle());
+		to.setContent(from.getContent());
+		to.setParent(from.getParent());
+		to.setChildNotes(from.getChildNotes());
+	}
+
 	@SuppressWarnings("unchecked")
 	public static KatalonNote katalonNoteFrom(Document doc) {
 		KatalonNote note = new KatalonNote();
@@ -61,7 +69,7 @@ public class NoteUtils {
 		}
 
 		int i = 0;
-		while (i < root1.getChildNotes().size()) {
+		while (i < Math.max(root1.getChildNotes().size(), root2.getChildNotes().size())) {
 			INote note1 = root1.getChildNotes().get(i);
 			INote note2 = root2.getChildNotes().get(i);
 			if (compare(note1, note2)) {

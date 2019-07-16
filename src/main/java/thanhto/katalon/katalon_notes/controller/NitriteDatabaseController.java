@@ -3,6 +3,7 @@ package thanhto.katalon.katalon_notes.controller;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import org.dizitart.no2.Cursor;
 import org.dizitart.no2.Document;
@@ -55,41 +56,58 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 
 	@Override
 	public INote update(INote note) {
-		recursiveAscentUpdate(note);
+		if (note == null) {
+			return null;
+		}
+
+		Document doc = collection.getById(NitriteId.createId(note.getId()));
+		INote originalNote = NoteUtils.katalonNoteFrom(doc);
+
+		// Remove original note from its original parent
+		Optional.ofNullable(originalNote.getParent()).ifPresent(parent -> {
+			if (!parent.equals(note.getParent())) {
+				parent.getChildNotes().removeIf(child -> child.equals(originalNote));
+			}
+		});
+
+		// Add modified note back to its (old or new) parent
+		Optional.ofNullable(note.getParent()).ifPresent(parent -> {
+			INote originalNoteInParent = parent.getChildNotes().stream().filter(a -> a.getId().equals(note.getId()))
+					.findFirst().orElse(null);
+			// If old parent then modify the note
+			if (originalNoteInParent != null) {
+				NoteUtils.copy(note, originalNoteInParent);
+			}
+			// If new parent then add the modified note
+			else {
+				parent.getChildNotes().add(note);
+			}
+		});
+
+		doc = NoteUtils.copy(note, doc);
+		collection.update(doc);
+
+		update(note.getParent());
 		return note;
 	}
 
 	@Override
 	public INote delete(INote note) {
-		recursiveDescentDelete(note);
-		recursiveAscentUpdate(note);
-		return note;
-	}
+		if (note == null) {
+			return null;
+		}
 
-	private void recursiveDescentDelete(INote note) {
 		Document doc = collection.getById(NitriteId.createId(note.getId()));
 		collection.remove(doc);
-		List<INote> childNotes = note.getChildNotes();
-		if (childNotes != null && childNotes.size() != 0) {
-			for (INote childNote : childNotes) {
-				recursiveDescentDelete(childNote);
-			}
+
+		INote originalNote = NoteUtils.katalonNoteFrom(doc);
+		Optional.ofNullable(originalNote.getParent()).ifPresent(parent -> {
+			parent.getChildNotes().remove(originalNote);
+		});
+		for (INote childNote : originalNote.getChildNotes()) {
+			delete(childNote);
 		}
-		// Empty-out child notes
-		note.setChildNotes(new ArrayList<>());
-	}
-
-	public void recursiveAscentUpdate(INote note) {
-
-		Document doc = collection.getById(NitriteId.createId(note.getId()));
-		doc = NoteUtils.copy(note, doc);
-		collection.update(doc);
-
-		INote parent = note.getParent();
-		while (parent != null) {
-			recursiveAscentUpdate(parent);
-			parent = parent.getParent();
-		}
+		return note;
 	}
 
 	@Override
