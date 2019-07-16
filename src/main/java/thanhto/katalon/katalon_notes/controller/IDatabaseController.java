@@ -19,6 +19,13 @@ public interface IDatabaseController<T> {
 	void openConnection();
 
 	/**
+	 * Open the connection with credentials
+	 * 
+	 * @param credentials
+	 */
+	void openConnection(String... credentials);
+
+	/**
 	 * Close the connection if previously opened, otherwise do nothing
 	 */
 	void closeConnection();
@@ -34,5 +41,17 @@ public interface IDatabaseController<T> {
 	T getById(Long id);
 
 	List<T> getByName(String title);
+
+	default String getLocalDatabaseLocation() {
+		return "";
+	}
+
+	/**
+	 * Set location for the database. Implementing classs will decide if this
+	 * location is to be used or it will use a default one
+	 * 
+	 * @param location
+	 */
+	void setLocalDatabaseLocation(String location);
 
 }

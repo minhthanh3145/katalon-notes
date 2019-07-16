@@ -35,8 +35,52 @@ public class ServiceProvider {
 	}
 
 	/**
+	 * 
+	 * Open the connection of the database at the given location that is
+	 * associated with the needed service by the given credentials and return
+	 * that service
+	 * 
+	 * @param serviceName
+	 * @param databaseLocation
+	 * @param credentials
+	 * @return
+	 * @throws DatabaseControllerUnselectedException
+	 */
+	public DatabaseService<INote> getDatabaseService(String serviceName, String databaseLocation, String... credentials)
+			throws DatabaseControllerUnselectedException {
+		DatabaseService<INote> service = serviceMap.get(serviceName);
+		if (service.getController() == null) {
+			throw new DatabaseControllerUnselectedException(serviceName);
+		}
+		service.getController().setLocalDatabaseLocation(databaseLocation);
+		service.getController().openConnection(credentials);
+		return service;
+	}
+
+	/**
+	 * Open the connection of the database at the given location that is
+	 * associated with the needed service and return that service
+	 * 
+	 * This is equivalent to call
+	 * {@link ServiceProvider#getDatabaseService(serviceName, databaseLocation,
+	 * "")}
+	 * 
+	 * @param serviceName
+	 * @param databaseLocation
+	 * @return
+	 * @throws DatabaseControllerUnselectedException
+	 */
+	public DatabaseService<INote> getDatabaseService(String serviceName, String databaseLocation)
+			throws DatabaseControllerUnselectedException {
+		return getDatabaseService(serviceName, databaseLocation, "");
+	}
+
+	/**
 	 * Open the connection of the database associated with the needed service
-	 * and return that service
+	 * and return that service.
+	 * 
+	 * This is equivalent to call
+	 * {@link ServiceProvider#getDatabaseService(serviceName, "", "")}
 	 * 
 	 * @param serviceName
 	 *            Name of the service
@@ -46,12 +90,7 @@ public class ServiceProvider {
 	 *             {@link IDatabaseController} instance yet
 	 */
 	public DatabaseService<INote> getDatabaseService(String serviceName) throws DatabaseControllerUnselectedException {
-		DatabaseService<INote> service = serviceMap.get(serviceName);
-		if (service.getController() == null) {
-			throw new DatabaseControllerUnselectedException(serviceName);
-		}
-		service.getController().openConnection();
-		return service;
+		return getDatabaseService(serviceName, "", "");
 	}
 
 	/**
