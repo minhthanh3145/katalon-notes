@@ -1,5 +1,6 @@
 package thanhto.katalon.katalon_notes.dialog;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.jface.action.IMenuListener;
@@ -33,9 +34,6 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
-import com.katalon.platform.api.service.ApplicationManager;
-import com.katalon.platform.api.ui.UISynchronizeService;
-
 import thanhto.katalon.katalon_notes.constant.CustomQueryConstants;
 import thanhto.katalon.katalon_notes.exception.PluginPreferenceIsNotAvailable;
 import thanhto.katalon.katalon_notes.exception.RendererNotRegisteredException;
@@ -50,62 +48,6 @@ import thanhto.katalon.katalon_notes.tree.KatalonNotesTreeLabelProvider;
 
 public class KatalonNotesDialog extends Dialog {
 
-	SelectionAdapter addSelectionAdapter = new SelectionAdapter() {
-		@Override
-		public void widgetSelected(SelectionEvent e) {
-			INote selectedNote = getSelectedNote();
-			uiSynchronizedService.asyncExec(() -> {
-				if (selectedNote == null) {
-					return;
-				}
-
-				if (selectedNote.getId() == null) {
-					INote savedCurrentlySelectedNote = databaseService.create(selectedNote);
-					setSelectedNote(savedCurrentlySelectedNote);
-				}
-
-				INote notNullSelectedNote = getSelectedNote();
-				INote newNote = new KatalonNote("Default title", "Default content");
-				INote savedNewNote = databaseService.create(newNote);
-				savedNewNote = databaseService.create(selectedNote);
-				savedNewNote.setParent(notNullSelectedNote);
-				databaseService.update(savedNewNote);
-
-				refresh();
-			});
-		}
-	};
-
-	SelectionAdapter deleteSelectionAdapter = new SelectionAdapter() {
-		@Override
-		public void widgetSelected(SelectionEvent e) {
-			INote note = getSelectedNote();
-			uiSynchronizedService.asyncExec(() -> {
-				databaseService.delete(note);
-				setSelectedNote(null);
-				refresh();
-			});
-		}
-	};
-
-	SelectionAdapter refreshSelectionAdapter = new SelectionAdapter() {
-		@Override
-		public void widgetSelected(SelectionEvent e) {
-			uiSynchronizedService.asyncExec(() -> {
-				refresh();
-			});
-		}
-	};
-
-	SelectionAdapter refreshHtmlRendererSelectionAdapter = new SelectionAdapter() {
-		@Override
-		public void widgetSelected(SelectionEvent e) {
-			uiSynchronizedService.asyncExec(() -> {
-				reloadHTMLRenderer();
-			});
-		}
-	};
-
 	private TreeViewer tvKatalonNotes;
 	private Composite mainComposite;
 	private Composite treeViewerAndDetailComposite;
@@ -116,7 +58,6 @@ public class KatalonNotesDialog extends Dialog {
 	private Browser browserPreview;
 	private Composite descriptionPreviewComposite;
 	private INote selectedNote;
-	private boolean dirty;
 	private Label lblInformation;
 	private MenuItem add;
 	private MenuItem delete;
@@ -124,14 +65,51 @@ public class KatalonNotesDialog extends Dialog {
 	private MenuItem refreshHtmlRenderer;
 
 	private IRenderer htmlRenderer;
-	private UISynchronizeService uiSynchronizedService;
+	private Display display;
 	private DatabaseService<INote> databaseService;
+
+	SelectionAdapter addSelectionAdapter = new SelectionAdapter() {
+		@Override
+		public void widgetSelected(SelectionEvent e) {
+			INote selectedNote = getSelectedNote();
+			INote unsavedChildNote = new KatalonNote("Default Title", "Default Content");
+			INote savedParent = databaseService.update(selectedNote);
+			INote savedChildNote = databaseService.create(unsavedChildNote);
+			savedChildNote.setParent(savedParent);
+			savedChildNote = databaseService.update(savedChildNote);
+			refresh();
+		}
+	};
+
+	SelectionAdapter deleteSelectionAdapter = new SelectionAdapter() {
+		@Override
+		public void widgetSelected(SelectionEvent e) {
+			databaseService.delete(getSelectedNote());
+			refresh();
+		}
+	};
+
+	SelectionAdapter refreshSelectionAdapter = new SelectionAdapter() {
+		@Override
+		public void widgetSelected(SelectionEvent e) {
+			refresh();
+		}
+	};
+
+	SelectionAdapter refreshHtmlRendererSelectionAdapter = new SelectionAdapter() {
+		@Override
+		public void widgetSelected(SelectionEvent e) {
+			reloadHTMLRenderer();
+		}
+	};
+
+	private List<SelectionAdapter> selectionAdapters = Arrays.asList(addSelectionAdapter, deleteSelectionAdapter,
+			refreshSelectionAdapter, refreshHtmlRendererSelectionAdapter);
 
 	public KatalonNotesDialog(Shell parentShell, DatabaseService<INote> service) {
 		super(parentShell);
 		this.databaseService = service;
-		uiSynchronizedService = ApplicationManager.getInstance().getUIServiceManager()
-				.getService(UISynchronizeService.class);
+		this.display = Display.getDefault();
 	}
 
 	@Override
@@ -170,13 +148,11 @@ public class KatalonNotesDialog extends Dialog {
 		createNoteDetailsComposite();
 		registerNotesListener();
 		reloadHTMLRenderer();
-
 		refresh();
 		return mainComposite;
 	}
 
 	public void createTreeViewerComposite() {
-
 		treeViewerComposite = new Composite(treeViewerAndDetailComposite, SWT.NONE);
 		GridData gdTreeViewer = new GridData(SWT.FILL, SWT.FILL, false, true);
 		gdTreeViewer.widthHint = 300;
@@ -229,12 +205,10 @@ public class KatalonNotesDialog extends Dialog {
 	}
 
 	private void addMenuItemsForContextMenu(Menu menu) {
-
 		for (MenuItem item : menu.getItems()) {
-			item.removeSelectionListener(addSelectionAdapter);
-			item.removeSelectionListener(deleteSelectionAdapter);
-			item.removeSelectionListener(refreshSelectionAdapter);
-			item.removeSelectionListener(refreshHtmlRendererSelectionAdapter);
+			for (SelectionAdapter selectionAdapter : selectionAdapters) {
+				item.removeSelectionListener(selectionAdapter);
+			}
 			item.dispose();
 		}
 
@@ -274,6 +248,7 @@ public class KatalonNotesDialog extends Dialog {
 		GridData gdDescPrev = new GridData(SWT.FILL, SWT.FILL, true, true);
 		descriptionPreviewComposite.setLayoutData(gdDescPrev);
 		GridLayout glDescPrev = new GridLayout(2, true);
+
 		descriptionPreviewComposite.setLayout(glDescPrev);
 		Label lblDescription = new Label(descriptionPreviewComposite, SWT.NONE);
 		lblDescription.setText("Description");
@@ -288,23 +263,20 @@ public class KatalonNotesDialog extends Dialog {
 
 		browserPreview = new Browser(descriptionPreviewComposite, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
 		browserPreview.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		browserPreview.setFont(txtContent.getFont());
 	}
 
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
-		// Change parent layout data to fill the whole bar
 		parent.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		parent.setLayout(new GridLayout(2, false));
+
 		Button btnSave = createButton(parent, IDialogConstants.NO_ID, "Update", true);
 		btnSave.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
 		btnSave.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				uiSynchronizedService.asyncExec(() -> {
-					databaseService.update(getSelectedNote());
-					lblInformation.setText(selectedNote.getTitle() + " has been updated !");
-				});
+				INote updatedNote = databaseService.update(getSelectedNote());
+				setSelectedNote(updatedNote);
 			}
 		});
 
@@ -312,10 +284,6 @@ public class KatalonNotesDialog extends Dialog {
 		lblInformation.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLUE));
 		lblInformation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 		lblInformation.setText("Manage your notes !");
-	}
-
-	private void setInput(List<INote> notes) {
-		tvKatalonNotes.setInput(notes);
 	}
 
 	private void setSelectedNote(INote note) {
@@ -343,9 +311,17 @@ public class KatalonNotesDialog extends Dialog {
 			KatalonNote note = new KatalonNote("Default", "Default");
 			notes.add(note);
 		}
-		setInput(notes);
-		tvKatalonNotes.refresh();
-		tvKatalonNotes.expandAll();
+
+		if (notes.size() > 0) {
+			setSelectedNote(notes.get(0));
+		}
+		display.syncExec(() -> {
+			if (!tvKatalonNotes.getControl().isDisposed()) {
+				tvKatalonNotes.setInput(notes);
+				tvKatalonNotes.refresh();
+				tvKatalonNotes.expandAll();
+			}
+		});
 	}
 
 	private void registerNotesListener() {
@@ -353,37 +329,20 @@ public class KatalonNotesDialog extends Dialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (tvKatalonNotes.getSelection() instanceof IStructuredSelection) {
-					INote note = getSelectedNote();
 					IStructuredSelection selection = (IStructuredSelection) tvKatalonNotes.getSelection();
-					INote newlySelectedNote = (INote) selection.getFirstElement();
-					if (selection.isEmpty()) {
-						return;
-					}
-					if (newlySelectedNote == null || !(newlySelectedNote instanceof INote)) {
-						return;
-					}
 
-					if (selectedNote.equals(newlySelectedNote) || !dirty) {
-						lblInformation.setText("No changes in your workspace ! Start working");
-					} else {
-						if (note.getId() != null) {
-							uiSynchronizedService.asyncExec(() -> {
-								databaseService.update(note);
-								lblInformation.setText(note.getTitle() + " has been updated !");
-							});
-						} else {
-							uiSynchronizedService.asyncExec(() -> {
-								databaseService.create(note);
-								lblInformation.setText(note.getTitle() + " has been created !");
-							});
-						}
+					if (selection == null || selection.isEmpty()) {
+						return;
 					}
-					uiSynchronizedService.asyncExec(() -> {
-						txtTitle.setText(newlySelectedNote.getTitle());
-						txtContent.setText(newlySelectedNote.getContent());
-						setSelectedNote(newlySelectedNote);
-						dirty = false;
-					});
+					INote savedSelectedNote = databaseService.update(getSelectedNote());
+					setSelectedNote((INote) selection.getFirstElement());
+					if (savedSelectedNote != null) {
+						display.syncExec(() -> {
+							txtTitle.setText(savedSelectedNote.getTitle());
+							txtContent.setText(savedSelectedNote.getContent());
+							lblInformation.setText(savedSelectedNote.getTitle() + " is updated !");
+						});
+					}
 				}
 			}
 		});
@@ -396,43 +355,51 @@ public class KatalonNotesDialog extends Dialog {
 					return;
 
 				final Object sel = selection.getFirstElement();
+				display.syncExec(() -> {
+					final ITreeContentProvider provider = (ITreeContentProvider) tvKatalonNotes.getContentProvider();
 
-				final ITreeContentProvider provider = (ITreeContentProvider) tvKatalonNotes.getContentProvider();
+					if (!provider.hasChildren(sel))
+						return;
 
-				if (!provider.hasChildren(sel))
-					return;
-
-				if (tvKatalonNotes.getExpandedState(sel))
-					tvKatalonNotes.collapseToLevel(sel, AbstractTreeViewer.ALL_LEVELS);
-				else
-					tvKatalonNotes.expandToLevel(sel, 1);
+					if (tvKatalonNotes.getExpandedState(sel))
+						tvKatalonNotes.collapseToLevel(sel, AbstractTreeViewer.ALL_LEVELS);
+					else
+						tvKatalonNotes.expandToLevel(sel, 1);
+				});
 			}
 		});
 
 		txtContent.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				if (htmlRenderer == null) {
-					browserPreview.setText("PLEASE OPEN A PROJECT TO START TAKING NOTES !");
-					return;
-				}
-				browserPreview.setText(htmlRenderer.render(((Text) e.widget).getText()));
+				display.syncExec(() -> {
+					if (htmlRenderer == null) {
+						browserPreview.setText("PLEASE OPEN A PROJECT TO START TAKING NOTES !");
+						return;
+					}
+					browserPreview.setText(htmlRenderer.render(txtContent.getText()));
+
+				});
 			}
 		});
 
 		txtTitle.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				getSelectedNote().setTitle(txtTitle.getText());
-				dirty = true;
+				INote selectedNote = getSelectedNote();
+				if (selectedNote != null) {
+					selectedNote.setTitle(txtTitle.getText());
+				}
 			}
 		});
 
 		txtContent.addModifyListener(new ModifyListener() {
 			@Override
 			public void modifyText(ModifyEvent e) {
-				getSelectedNote().setContent(txtContent.getText());
-				dirty = true;
+				INote selectedNote = getSelectedNote();
+				if (selectedNote != null) {
+					selectedNote.setTitle(txtTitle.getText());
+				}
 			}
 		});
 	}

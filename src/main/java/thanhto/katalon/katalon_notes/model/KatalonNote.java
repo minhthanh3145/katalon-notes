@@ -87,26 +87,18 @@ public class KatalonNote implements INote, Serializable {
 		this.parent = parent;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((childNotes == null) ? 0 : childNotes.hashCode());
-		result = prime * result + ((content == null) ? 0 : content.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((parent == null) ? 0 : parent.hashCode());
-		result = prime * result + ((title == null) ? 0 : title.hashCode());
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/* (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
@@ -118,30 +110,10 @@ public class KatalonNote implements INote, Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		KatalonNote other = (KatalonNote) obj;
-		if (childNotes == null) {
-			if (other.childNotes != null)
-				return false;
-		} else if (!childNotes.equals(other.childNotes))
-			return false;
-		if (content == null) {
-			if (other.content != null)
-				return false;
-		} else if (!content.equals(other.content))
-			return false;
 		if (id == null) {
 			if (other.id != null)
 				return false;
 		} else if (!id.equals(other.id))
-			return false;
-		if (parent == null) {
-			if (other.parent != null)
-				return false;
-		} else if (!parent.equals(other.parent))
-			return false;
-		if (title == null) {
-			if (other.title != null)
-				return false;
-		} else if (!title.equals(other.title))
 			return false;
 		return true;
 	}

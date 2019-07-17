@@ -42,13 +42,14 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 
 	@Override
 	public INote create(INote note) {
-		if (note.getId() != null) {
-			return null;
+		if (note == null || note.getId() != null) {
+			return note;
 		}
 		Document doc = NoteUtils.from(note);
 		WriteResult result = collection.insert(doc);
 		note.setId(result.iterator().next().getIdValue());
-		for (INote childNote : note.getChildNotes()) {
+		for (int i = 0; i < note.getChildNotes().size(); i++) {
+			INote childNote = note.getChildNotes().get(i);
 			create(childNote);
 		}
 		return note;
@@ -57,7 +58,11 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 	@Override
 	public INote update(INote note) {
 		if (note == null) {
-			return null;
+			return note;
+		}
+
+		if (note.getId() == null) {
+			return create(note);
 		}
 
 		Document doc = collection.getById(NitriteId.createId(note.getId()));
@@ -93,7 +98,7 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 
 	@Override
 	public INote delete(INote note) {
-		if (note == null) {
+		if (note == null || note.getId() == null) {
 			return null;
 		}
 
@@ -101,10 +106,13 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 		collection.remove(doc);
 
 		INote originalNote = NoteUtils.katalonNoteFrom(doc);
+
 		Optional.ofNullable(originalNote.getParent()).ifPresent(parent -> {
 			parent.getChildNotes().remove(originalNote);
 		});
-		for (INote childNote : originalNote.getChildNotes()) {
+
+		for (int i = 0; i < originalNote.getChildNotes().size(); i++) {
+			INote childNote = originalNote.getChildNotes().get(i);
 			delete(childNote);
 		}
 		return note;
@@ -155,7 +163,8 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 		collection = db.getCollection(NOTES_COLLECTION);
 	}
 
-	public Nitrite getDatabase(String... credentials) {
+	private Nitrite getDatabase(String... credentials) {
+		closeConnection();
 		Nitrite database = null;
 		String currentProjectPath = getCurrentProjectPath();
 		String pathToDatabase = (databaseFilePath.equals("") ? (currentProjectPath) : databaseFilePath)
@@ -176,7 +185,9 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 
 	@Override
 	public void closeConnection() {
-		db.close();
+		if (db != null) {
+			db.close();
+		}
 	}
 
 	@Override
