@@ -5,6 +5,11 @@ Katalon Notes is a Katalon plug-in that allows you to take notes in-app easily
 ![katalon-notes](https://user-images.githubusercontent.com/16775806/61402537-8c90c180-a8fd-11e9-9d2c-1b4c21b0b07d.gif)
 
 
+### Current stable version is 1.0.5
+
+My sincere apology for early adopters of Katalon Notes. I made some bad decisions and I had to introduce breaking changes in order for this project to move towards a more stable future. You would have to migrate contents from your earlier versions of Katalon Notes manually. Again, my sincere apology.
+
+
 *This plug-in is open-sourced [here](https://github.com/minhthanh3145/katalon-notes). Documentation is available [here](https://github.com/minhthanh3145/katalon-notes/issues/1). If you have any issues you can submit them [here](https://github.com/minhthanh3145/katalon-notes/issues)*
 
 
