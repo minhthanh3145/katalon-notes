@@ -1,6 +1,6 @@
 # Katalon Notes
 
-This plug-in allows you to take notes within Katalon Studio without having to open a third-party applications.
+Katalon Notes is a Katalon plug-in that allows you to take notes in-app easily
 
 ![katalon-notes](https://user-images.githubusercontent.com/16775806/61402537-8c90c180-a8fd-11e9-9d2c-1b4c21b0b07d.gif)
 
