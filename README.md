@@ -1,5 +1,8 @@
 # Katalon Notes
 
+![KatalonNotes_140px](https://user-images.githubusercontent.com/16775806/61437443-48d2a200-a967-11e9-9bd3-68edeaa3724a.png)
+
+
 Katalon Notes is a Katalon plug-in that allows you to take notes in-app easily
 
 ![katalon-notes](https://user-images.githubusercontent.com/16775806/61402537-8c90c180-a8fd-11e9-9d2c-1b4c21b0b07d.gif)
