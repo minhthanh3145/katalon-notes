@@ -64,7 +64,7 @@ public class HtmlRendererFactory {
 					.getPluginPreference(projectEntity.getId(), "thanhto.katalon.katalon-notes");
 			Map<String, String> registeredKeyMap = new HashMap<>();
 			for (String registeredKey : renderer.getRegisteredKeys()) {
-				registeredKeyMap.put(registeredKey, preferences.getString(registeredKey, null));
+				registeredKeyMap.put(registeredKey, preferences.getString(registeredKey, ""));
 			}
 			renderer.onRegisteredKeysHaveValues(registeredKeyMap);
 		} catch (ResourceException e) {

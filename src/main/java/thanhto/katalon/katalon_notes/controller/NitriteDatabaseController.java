@@ -52,47 +52,54 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 			INote childNote = note.getChildNotes().get(i);
 			create(childNote);
 		}
+		update(note);
 		return note;
 	}
 
 	@Override
 	public INote update(INote note) {
-		if (note == null) {
+		if (note == null || note.getId() == null) {
+			System.out.println("------------------------");
 			return note;
-		}
-
-		if (note.getId() == null) {
-			return create(note);
 		}
 
 		Document doc = collection.getById(NitriteId.createId(note.getId()));
 		INote originalNote = NoteUtils.katalonNoteFrom(doc);
 
-		// Remove original note from its original parent
+		if (note.getParent() != null && !note.getParent().equals(originalNote.getParent())) {
+			System.out.println(note.getParent().toString() + " " + originalNote.getParent().toString());
+		}
+
 		Optional.ofNullable(originalNote.getParent()).ifPresent(parent -> {
 			if (!parent.equals(note.getParent())) {
 				parent.getChildNotes().removeIf(child -> child.equals(originalNote));
 			}
 		});
 
-		// Add modified note back to its (old or new) parent
 		Optional.ofNullable(note.getParent()).ifPresent(parent -> {
 			INote originalNoteInParent = parent.getChildNotes().stream().filter(a -> a.getId().equals(note.getId()))
 					.findFirst().orElse(null);
-			// If old parent then modify the note
 			if (originalNoteInParent != null) {
 				NoteUtils.copy(note, originalNoteInParent);
-			}
-			// If new parent then add the modified note
-			else {
+			} else {
 				parent.getChildNotes().add(note);
 			}
 		});
 
+		System.out.println("BEFORE UPDATE");
+		System.out.println("Incoming: " + "(" + note.getId() + ")" + note.getTitle() + " " + note.getContent());
+		System.out.println("Original: " + "(" + originalNote.getId() + ")" + originalNote.getTitle() + " "
+				+ originalNote.getContent());
+
 		doc = NoteUtils.copy(note, doc);
 		collection.update(doc);
 
-		update(note.getParent());
+		doc = collection.getById(NitriteId.createId(note.getId()));
+		INote tmp = NoteUtils.katalonNoteFrom(doc);
+		System.out.println("AFTER UPDATE");
+		System.out.println("Incoming: " + "(" + note.getId() + ")" + note.getTitle() + " " + note.getContent());
+		System.out.println("Original: " + "(" + tmp.getId() + ")" + tmp.getTitle() + " " + tmp.getContent());
+
 		return note;
 	}
 
@@ -112,7 +119,7 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 		});
 
 		for (int i = 0; i < originalNote.getChildNotes().size(); i++) {
-			INote childNote = originalNote.getChildNotes().get(i);
+			INote childNote = note.getChildNotes().get(i);
 			delete(childNote);
 		}
 		return note;
