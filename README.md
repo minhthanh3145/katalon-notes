@@ -2,15 +2,27 @@
 
 ![KatalonNotes_140px](https://user-images.githubusercontent.com/16775806/61437443-48d2a200-a967-11e9-9bd3-68edeaa3724a.png)
 
+**By**: [Quynh Lam](https://www.behance.net/luongquynha1e6)
+
 
 Katalon Notes is a Katalon plug-in that allows you to take notes in-app easily
 
 ![katalon-notes](https://user-images.githubusercontent.com/16775806/61402537-8c90c180-a8fd-11e9-9d2c-1b4c21b0b07d.gif)
 
+### Features (existing and upcoming)
+- [X] Markdown support.
+- [X] In-note links to jump between sections.
+- [X] Render web pages in-app on link.
+- [X] Hiearchical note organization.
+- [X] Automatic saving when navigating between notes.
+- [ ] Link notes to artifact.
+- [ ] Hot key to save content when making notes.
+- [ ] Integration with Trello to 
 
-### Current stable version is 1.0.5
 
-My sincere apology for early adopters of Katalon Notes. I made some bad decisions and I had to introduce breaking changes in order for this project to move towards a more stable future. You would have to migrate contents from your earlier versions of Katalon Notes manually. Again, my sincere apology.
+### 1.0.6 - Stable.
+
+From version 1.0.6 major bugs are fixed including UI freezes when interacting on the note repository, root note cannot be edited, note structure is rendered incorrectly. From now on I will focus on making sure existing features work as intended as well as working on new features. Thank you for your support !
 
 
 *This plug-in is open-sourced [here](https://github.com/minhthanh3145/katalon-notes). Documentation is available [here](https://github.com/minhthanh3145/katalon-notes/issues/1). If you have any issues you can submit them [here](https://github.com/minhthanh3145/katalon-notes/issues)*
