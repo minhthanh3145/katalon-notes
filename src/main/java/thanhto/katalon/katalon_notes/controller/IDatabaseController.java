@@ -30,6 +30,14 @@ public interface IDatabaseController<T> {
 	 */
 	void closeConnection();
 
+	/**
+	 * Close connection if previously opened and open connection for the
+	 * specified database
+	 * 
+	 * @param databaseLocation
+	 */
+	void switchDatabase(String databaseLocation);
+
 	List<T> getByCustomQuery(String query);
 
 	T create(T note);

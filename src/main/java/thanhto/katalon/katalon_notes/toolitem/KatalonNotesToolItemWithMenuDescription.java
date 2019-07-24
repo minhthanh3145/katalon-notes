@@ -47,11 +47,11 @@ public class KatalonNotesToolItemWithMenuDescription implements ToolItemWithMenu
 			}
 		}
 
-		MenuItem addNewNoteMenuItem = new MenuItem(optionMenu, SWT.PUSH);
-		addNewNoteMenuItem.setText("Open Katalon Notes");
-		addNewNoteMenuItem.setToolTipText("Manage your notes through a single interface");
+		MenuItem openKatalonNotesMenuItem = new MenuItem(optionMenu, SWT.PUSH);
+		openKatalonNotesMenuItem.setText("Open Katalon Notes");
+		openKatalonNotesMenuItem.setToolTipText("Manage your notes through a single interface");
 
-		addNewNoteMenuItem.addSelectionListener(new SelectionAdapter() {
+		openKatalonNotesMenuItem.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				try {

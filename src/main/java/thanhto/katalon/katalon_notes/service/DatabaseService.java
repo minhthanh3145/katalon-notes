@@ -48,4 +48,8 @@ public class DatabaseService<T> {
 	public List<T> getByCustomQuery(String query) {
 		return controller.getByCustomQuery(query);
 	}
+	
+	public void switchDatabase(String newDatabaseLocation) {
+		controller.switchDatabase(newDatabaseLocation);
+	}
 }

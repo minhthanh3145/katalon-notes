@@ -85,21 +85,8 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 				parent.getChildNotes().add(note);
 			}
 		});
-
-		System.out.println("BEFORE UPDATE");
-		System.out.println("Incoming: " + "(" + note.getId() + ")" + note.getTitle() + " " + note.getContent());
-		System.out.println("Original: " + "(" + originalNote.getId() + ")" + originalNote.getTitle() + " "
-				+ originalNote.getContent());
-
 		doc = NoteUtils.copy(note, doc);
 		collection.update(doc);
-
-		doc = collection.getById(NitriteId.createId(note.getId()));
-		INote tmp = NoteUtils.katalonNoteFrom(doc);
-		System.out.println("AFTER UPDATE");
-		System.out.println("Incoming: " + "(" + note.getId() + ")" + note.getTitle() + " " + note.getContent());
-		System.out.println("Original: " + "(" + tmp.getId() + ")" + tmp.getTitle() + " " + tmp.getContent());
-
 		return note;
 	}
 
@@ -181,7 +168,8 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 			String password = credentials[1];
 			database = Nitrite.builder().compressed().filePath(pathToDatabase).openOrCreate(username, password);
 		} else {
-			database = Nitrite.builder().compressed().filePath(pathToDatabase).openOrCreate();
+			database = Nitrite.builder().compressed().filePath(pathToDatabase).openOrCreate("katalon-notes",
+					"katalon_notes");
 		}
 		return database;
 	}
@@ -205,5 +193,12 @@ public class NitriteDatabaseController implements IDatabaseController<INote> {
 	@Override
 	public String getLocalDatabaseLocation() {
 		return this.databaseFilePath;
+	}
+
+	@Override
+	public void switchDatabase(String databaseLocation) {
+		closeConnection();
+		setLocalDatabaseLocation(databaseLocation);
+		openConnection();
 	}
 }

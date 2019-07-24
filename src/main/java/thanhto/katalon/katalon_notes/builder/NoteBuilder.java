@@ -3,6 +3,13 @@ package thanhto.katalon.katalon_notes.builder;
 import thanhto.katalon.katalon_notes.model.INote;
 import thanhto.katalon.katalon_notes.model.KatalonNote;
 
+/**
+ * A utility note builder to quickly build hierarchical note organizations to be
+ * used in unit testing
+ * 
+ * @author thanhto
+ *
+ */
 public class NoteBuilder {
 	private INote note;
 

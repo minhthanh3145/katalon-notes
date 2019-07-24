@@ -1,12 +1,17 @@
 package thanhto.katalon.katalon_notes.dialog;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.DoubleClickEvent;
@@ -27,6 +32,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
@@ -112,6 +118,8 @@ public class KatalonNotesDialog extends Dialog {
 	public KatalonNotesDialog(Shell parentShell, DatabaseService<INote> service) {
 		super(parentShell);
 		this.databaseService = service;
+		System.out.println("Database at: "
+				+ ApplicationManager.getInstance().getProjectManager().getCurrentProject().getFolderLocation());
 		this.uiSynchronizeService = ApplicationManager.getInstance().getUIServiceManager()
 				.getService(UISynchronizeService.class);
 	}
@@ -266,11 +274,11 @@ public class KatalonNotesDialog extends Dialog {
 
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
-		parent.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-		parent.setLayout(new GridLayout(2, false));
+		parent.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		parent.setLayout(new GridLayout(5, false));
 
 		Button btnSave = createButton(parent, IDialogConstants.NO_ID, "Update", true);
-		btnSave.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
+		btnSave.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
 		btnSave.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -292,6 +300,65 @@ public class KatalonNotesDialog extends Dialog {
 					});
 				}
 				refresh();
+			}
+		});
+
+		Text txtDatabase = new Text(parent, SWT.BORDER);
+		txtDatabase.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+		txtDatabase.setMessage("Choose another database location");
+
+		Button btnBrowse = new Button(parent, SWT.NONE);
+		btnBrowse.setText("...");
+		btnBrowse.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				DirectoryDialog directoryDialog = new DirectoryDialog(getParentShell());
+				String directory = directoryDialog.open();
+				uiSynchronizeService.syncExec(() -> {
+					if (!txtDatabase.isDisposed()) {
+						txtDatabase.setText(directory);
+					}
+				});
+			}
+		});
+
+		Button btnChangeDatabase = createButton(parent, IDialogConstants.NO_ID, "Change database", false);
+		btnSave.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
+		btnChangeDatabase.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (txtDatabase.equals("")) {
+					String currentProject = ApplicationManager.getInstance().getProjectManager().getCurrentProject()
+							.getFolderLocation();
+					databaseService.getController().setLocalDatabaseLocation(currentProject);
+				} else {
+					File databaseFolder = new File(txtDatabase.getText());
+					if (databaseFolder.isDirectory()) {
+						String newDirectory = databaseFolder.getAbsolutePath();
+						try {
+							databaseService.getController().switchDatabase(newDirectory);
+							lblInformation.setText("Switched to new database !");
+							refresh();
+						} catch (Exception exception) {
+							ErrorDialog.openError(getParentShell(), "Error when switching database",
+									ExceptionUtils.getStackTrace(exception),
+									new Status(Status.ERROR, "KatalonNotesDialog", exception.getMessage()),
+									IStatus.ERROR);
+
+							uiSynchronizeService.syncExec(() -> {
+								if (!lblInformation.isDisposed()) {
+									lblInformation.setText("Error when switching database !");
+								}
+							});
+						}
+					} else {
+						uiSynchronizeService.syncExec(() -> {
+							if (!lblInformation.isDisposed()) {
+								lblInformation.setText("Invalid folder !");
+							}
+						});
+					}
+				}
 			}
 		});
 
