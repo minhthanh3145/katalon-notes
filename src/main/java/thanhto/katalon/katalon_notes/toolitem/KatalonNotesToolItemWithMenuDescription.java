@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.MenuItem;
 
 import com.katalon.platform.api.extension.ToolItemWithMenuDescription;
 
+import thanhto.katalon.katalon_notes.controller.NitriteDatabaseController;
 import thanhto.katalon.katalon_notes.dialog.KatalonNotesDialog;
 import thanhto.katalon.katalon_notes.exception.DatabaseControllerUnselectedException;
 import thanhto.katalon.katalon_notes.model.INote;
@@ -54,14 +55,7 @@ public class KatalonNotesToolItemWithMenuDescription implements ToolItemWithMenu
 		openKatalonNotesMenuItem.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				try {
-					service = ServiceProvider.getInstance().getDatabaseService("nitrite", "", "katalon-notes",
-							"katalon_notes");
-				} catch (DatabaseControllerUnselectedException exception) {
-					System.out.println(ExceptionUtils.getStackTrace(exception));
-				}
-				KatalonNotesDialog addNewNoteDialog = new KatalonNotesDialog(Display.getCurrent().getActiveShell(),
-						service);
+				KatalonNotesDialog addNewNoteDialog = new KatalonNotesDialog(Display.getCurrent().getActiveShell());
 				if (addNewNoteDialog.open() == Window.OK) {
 
 				}

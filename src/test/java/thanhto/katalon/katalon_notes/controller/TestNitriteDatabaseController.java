@@ -3,30 +3,40 @@ package thanhto.katalon.katalon_notes.controller;
 import java.io.File;
 import java.util.List;
 
+import org.dizitart.no2.NitriteCollection;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.runners.MethodSorters;
 import org.mockito.Mockito;
 
 import thanhto.katalon.katalon_notes.builder.NoteBuilder;
 import thanhto.katalon.katalon_notes.constant.CustomQueryConstants;
+import thanhto.katalon.katalon_notes.factory.DatabaseActionProviderFactory;
+import thanhto.katalon.katalon_notes.factory.DatabaseArtifactFactory;
 import thanhto.katalon.katalon_notes.model.INote;
 import thanhto.katalon.katalon_notes.model.KatalonNote;
+import thanhto.katalon.katalon_notes.provider.IDatabaseActionProvider;
 import thanhto.katalon.katalon_notes.util.NoteUtils;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestNitriteDatabaseController {
 
 	static NitriteDatabaseController controller;
+	private DatabaseActionProviderFactory actionProviderFactory = DatabaseActionProviderFactory.getInstance();
 
 	@Before
 	public void prepare() {
+
+		IDatabaseActionProvider actionProvider = actionProviderFactory.get(NitriteDatabaseController.class.getName());
+		actionProviderFactory.get(NitriteDatabaseController.class.getName()).setLocalDatabaseLocation(
+				"/Users/thanhto/Documents/repository/others/katalon-notes/src/test/resources");
+		actionProviderFactory.get(NitriteDatabaseController.class.getName()).openConnection();
+		System.out.println(NitriteDatabaseController.class.getName());
+		System.out.println(NitriteCollection.class.getName());
+		DatabaseArtifactFactory.getInstance().setArtifact(NitriteDatabaseController.class.getName(),
+				NitriteCollection.class.getName(), actionProvider.get(NitriteCollection.class));
+
 		controller = Mockito.spy(new NitriteDatabaseController());
-		Mockito.doReturn(new File("src/test/resources").getAbsolutePath()).when(controller).getCurrentProjectPath();
-		controller.openConnection();
 	}
 
 	@Test
@@ -375,7 +385,7 @@ public class TestNitriteDatabaseController {
 
 	@After
 	public void tearDown() {
-		controller.closeConnection();
+		actionProviderFactory.get(NitriteDatabaseController.class.getName()).closeConnection();
 		new File("src/test/resources/katalon_notes.db").delete();
 	}
 

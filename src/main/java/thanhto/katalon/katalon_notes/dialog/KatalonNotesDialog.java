@@ -44,10 +44,14 @@ import com.katalon.platform.api.service.ApplicationManager;
 import com.katalon.platform.api.ui.UISynchronizeService;
 
 import thanhto.katalon.katalon_notes.constant.CustomQueryConstants;
+import thanhto.katalon.katalon_notes.controller.NitriteDatabaseController;
+import thanhto.katalon.katalon_notes.exception.DatabaseControllerUnselectedException;
 import thanhto.katalon.katalon_notes.exception.PluginPreferenceIsNotAvailable;
 import thanhto.katalon.katalon_notes.exception.RendererNotRegisteredException;
+import thanhto.katalon.katalon_notes.factory.DatabaseActionProviderFactory;
 import thanhto.katalon.katalon_notes.model.INote;
 import thanhto.katalon.katalon_notes.model.KatalonNote;
+import thanhto.katalon.katalon_notes.provider.ServiceProvider;
 import thanhto.katalon.katalon_notes.renderer.CommonMarkRenderer;
 import thanhto.katalon.katalon_notes.renderer.HtmlRendererFactory;
 import thanhto.katalon.katalon_notes.renderer.IRenderer;
@@ -75,6 +79,8 @@ public class KatalonNotesDialog extends Dialog {
 	private IRenderer htmlRenderer;
 	private UISynchronizeService uiSynchronizeService;
 	private DatabaseService<INote> databaseService;
+
+	private DatabaseActionProviderFactory actionProviderFactory = DatabaseActionProviderFactory.getInstance();
 
 	SelectionAdapter addSelectionAdapter = new SelectionAdapter() {
 		@Override
@@ -115,13 +121,24 @@ public class KatalonNotesDialog extends Dialog {
 	private List<SelectionAdapter> selectionAdapters = Arrays.asList(addSelectionAdapter, deleteSelectionAdapter,
 			refreshHtmlRendererSelectionAdapter);
 
-	public KatalonNotesDialog(Shell parentShell, DatabaseService<INote> service) {
+	/**
+	 * @param parentShell
+	 * @param service
+	 */
+	public KatalonNotesDialog(Shell parentShell) {
 		super(parentShell);
-		this.databaseService = service;
-		System.out.println("Database at: "
-				+ ApplicationManager.getInstance().getProjectManager().getCurrentProject().getFolderLocation());
+		getService("");
 		this.uiSynchronizeService = ApplicationManager.getInstance().getUIServiceManager()
 				.getService(UISynchronizeService.class);
+	}
+
+	private void getService(String atLocation) {
+		try {
+			databaseService = ServiceProvider.getInstance().getDatabaseService(
+					NitriteDatabaseController.class.getName(), atLocation, "katalon-notes", "katalon_notes");
+		} catch (DatabaseControllerUnselectedException exception) {
+			System.out.println(ExceptionUtils.getStackTrace(exception));
+		}
 	}
 
 	@Override
@@ -330,13 +347,18 @@ public class KatalonNotesDialog extends Dialog {
 				if (txtDatabase.equals("")) {
 					String currentProject = ApplicationManager.getInstance().getProjectManager().getCurrentProject()
 							.getFolderLocation();
-					databaseService.getController().setLocalDatabaseLocation(currentProject);
+					actionProviderFactory.get(databaseService.getController().getClass().getName())
+							.setLocalDatabaseLocation(currentProject);
 				} else {
 					File databaseFolder = new File(txtDatabase.getText());
 					if (databaseFolder.isDirectory()) {
 						String newDirectory = databaseFolder.getAbsolutePath();
 						try {
-							databaseService.getController().switchDatabase(newDirectory);
+							System.out.println(databaseService.getController().getClass().getName());
+							actionProviderFactory.get(databaseService.getController().getClass().getName())
+									.switchDatabase(newDirectory);
+							// Ask for the service again now it's anew
+							getService(newDirectory);
 							lblInformation.setText("Switched to new database !");
 							refresh();
 						} catch (Exception exception) {

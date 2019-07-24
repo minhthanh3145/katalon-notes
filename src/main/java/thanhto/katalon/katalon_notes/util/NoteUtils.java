@@ -81,4 +81,17 @@ public class NoteUtils {
 		}
 		return true;
 	}
+
+	public static boolean documentInvalid(Document doc) {
+		try {
+			doc.get("title").toString();
+			doc.get("content").toString();
+			doc.getId().getIdValue();
+			doc.get("parent");
+			doc.get("childNotes");
+		} catch (Exception e) {
+			return true;
+		}
+		return false;
+	}
 }
