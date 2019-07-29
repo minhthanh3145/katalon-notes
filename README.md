@@ -15,9 +15,10 @@ Katalon Notes is a Katalon plug-in that allows you to take notes in-app easily
 - [X] Render web pages in-app on link.
 - [X] Hiearchical note organization.
 - [X] Automatic saving when navigating between notes.
+- [X] Switch between different databse folders.
 - [ ] Link notes to artifact.
 - [ ] Hot key to save content when making notes.
-- [ ] Integration with Trello to 
+- [ ] Integration with Trello.
 
 ### 1.0.7 - Stable.
 
