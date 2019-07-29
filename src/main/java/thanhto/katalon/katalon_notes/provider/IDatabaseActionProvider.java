@@ -19,7 +19,7 @@ public interface IDatabaseActionProvider {
 	 * @return An instance of the requested class if the implementing class
 	 *         provides one. Null otherwise
 	 */
-	default <E extends V, V> E get(Class<V> clazz) {
+	default Object get(String key) {
 		return null;
 	}
 
@@ -36,7 +36,5 @@ public interface IDatabaseActionProvider {
 	}
 
 	void setLocalDatabaseLocation(String location);
-
-	void commit();
 
 }

@@ -3,6 +3,24 @@ package thanhto.katalon.katalon_notes.factory;
 import java.util.HashMap;
 import java.util.Map;
 
+import thanhto.katalon.katalon_notes.constant.ServiceName;
+import thanhto.katalon.katalon_notes.controller.NitriteDatabaseController;
+import thanhto.katalon.katalon_notes.provider.IDatabaseActionProvider;
+import thanhto.katalon.katalon_notes.provider.ServiceProvider;
+
+/**
+ * <p>
+ * Client DatabaseControllers uses this factory to retrieve database artifacts.
+ * </p>
+ * 
+ * <p>
+ * {@link ServiceProvider} uses this factory to create database artifacts when
+ * the database is created and opened
+ * </p>
+ * 
+ * @author thanhto
+ *
+ */
 public class DatabaseArtifactFactory {
 	private static DatabaseArtifactFactory _instance;
 	private Map<String, Map<String, Object>> artifactMap = new HashMap<>();
@@ -28,8 +46,9 @@ public class DatabaseArtifactFactory {
 	}
 
 	/**
-	 * Get the artifact inside the artifact map of the corresponding
-	 * {@link thanhto.katalon.katalon_notes.controller.IDatabaseController}
+	 * Should be used by the client
+	 * {@link thanhto.katalon.katalon_notes.controller.IDatabaseController} to
+	 * retrieve needed database artifacts
 	 * 
 	 * @param databaseControllerName
 	 *            Name of the database controller class
@@ -44,5 +63,29 @@ public class DatabaseArtifactFactory {
 			return null;
 		}
 		return map.get(key);
+	}
+
+	/**
+	 * <p>
+	 * This method is called by
+	 * {@link thanhto.katalon.katalon_notes.provider.ServiceProvider} to create
+	 * appropriate database artifacts for its services.
+	 * </p>
+	 * 
+	 * <p>
+	 * Client
+	 * {@link thanhto.katalon.katalon_notes.controller.IDatabaseController}
+	 * should not use this method because this method assumes prerequisites that
+	 * can only be satisfied by
+	 * {@link thanhto.katalon.katalon_notes.provider.ServiceProvider}
+	 * </p>
+	 * 
+	 * @param serviceName
+	 */
+	public void createArtifactsFor(ServiceName serviceName) {
+		IDatabaseActionProvider actionProvider = DatabaseActionProviderFactory.getInstance().get(serviceName);
+		if (serviceName.getControllerName().equals(NitriteDatabaseController.class.getName())) {
+			setArtifact(serviceName.getControllerName(), "objectRepository", actionProvider.get("objectRepository"));
+		}
 	}
 }

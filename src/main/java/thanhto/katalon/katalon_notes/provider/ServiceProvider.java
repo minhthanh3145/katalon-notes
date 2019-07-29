@@ -5,25 +5,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.dizitart.no2.NitriteCollection;
-
+import thanhto.katalon.katalon_notes.constant.ServiceName;
 import thanhto.katalon.katalon_notes.controller.IDatabaseController;
-import thanhto.katalon.katalon_notes.controller.NitriteDatabaseController;
-import thanhto.katalon.katalon_notes.exception.DatabaseControllerUnselectedException;
 import thanhto.katalon.katalon_notes.factory.DatabaseActionProviderFactory;
 import thanhto.katalon.katalon_notes.factory.DatabaseArtifactFactory;
-import thanhto.katalon.katalon_notes.model.INote;
+import thanhto.katalon.katalon_notes.model.KatalonNote;
 import thanhto.katalon.katalon_notes.service.DatabaseService;
 
 /**
- * A central place to provide services across Katalon Notes
+ * A central place to retrieve services across Katalon Notes
  * 
  * @author thanhto
  *
  */
 public class ServiceProvider {
 	private static ServiceProvider _instance;
-	private Map<String, DatabaseService<INote>> serviceMap;
+	private Map<String, DatabaseService<KatalonNote>> serviceMap;
 	private DatabaseActionProviderFactory actionProviderFactory = DatabaseActionProviderFactory.getInstance();
 
 	public static ServiceProvider getInstance() {
@@ -39,29 +36,39 @@ public class ServiceProvider {
 
 	/**
 	 * 
-	 * Open database connection corresponding to the given service's name. Only
-	 * after calling this method does the corresponding
-	 * {@link IDatabaseController} instance is functional
+	 * The service is active by performing the following steps:
+	 * <ul>
+	 * <li>Retrieve {@link IDatabaseActionProvider} for the service</li>
+	 * <li>Use the action provider to open the database connection at the given
+	 * location with the given credentials</li>
+	 * <li>Create database artifacts (collection, secondary storage, etc) using
+	 * {@link DatabaseArtifactFactory}</li>
+	 * <li>Create a new instance of {@link IDatabaseController} and give it to
+	 * the service</li>
+	 * </ul>
 	 * 
 	 * @param serviceName
+	 *            Name of the {@link IDatabaseController} class corresponding to
+	 *            this service
 	 * @param databaseLocation
 	 * @param credentials
-	 * @return A {@link DatabaseService} instance
+	 * @return A {@link DatabaseService} instance after all the above steps have
+	 *         been performed
 	 */
 	@SuppressWarnings("unchecked")
-	public DatabaseService<INote> getDatabaseService(String serviceName, String databaseLocation, String... credentials)
-			throws DatabaseControllerUnselectedException {
-		DatabaseService<INote> service = serviceMap.get(serviceName);
+	public DatabaseService<KatalonNote> getDatabaseService(ServiceName serviceName, String databaseLocation,
+			String... credentials) {
+		DatabaseService<KatalonNote> service = serviceMap.get(serviceName.toString());
 
 		IDatabaseActionProvider actionProvider = actionProviderFactory.get(serviceName);
 		actionProvider.setLocalDatabaseLocation(databaseLocation);
 		actionProvider.openConnection(credentials);
 
-		registerDatabaseArtifacts(serviceName, actionProvider);
+		DatabaseArtifactFactory.getInstance().createArtifactsFor(serviceName);
 
 		try {
-			service.setController(
-					(IDatabaseController<INote>) Class.forName(serviceName).getConstructors()[0].newInstance());
+			service.setController((IDatabaseController<KatalonNote>) Class.forName(serviceName.getControllerName())
+					.getConstructors()[0].newInstance());
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
 				| SecurityException | ClassNotFoundException e) {
 			e.printStackTrace();
@@ -70,68 +77,11 @@ public class ServiceProvider {
 	}
 
 	/**
-	 * Register important artifacts for each respective type of databases such
-	 * as database instance, collection instance, etc.
-	 * 
-	 * The given instance of {@link IDatabaseActionProvider} is assumed to have
-	 * already opened a database connection with appropriate location and
-	 * credentials before invocation of this method
-	 * 
-	 * @param serviceName
-	 *            Name of the {@link IDatabaseController} class
-	 * @param actionProvider
-	 *            Instance of {@link IDatabaseActionProvider} associating with
-	 *            the given controller class name
-	 */
-	private void registerDatabaseArtifacts(String serviceName, IDatabaseActionProvider actionProvider) {
-		if (serviceName.equals(NitriteDatabaseController.class.getName())) {
-			DatabaseArtifactFactory.getInstance().setArtifact(serviceName, NitriteCollection.class.getName(),
-					actionProvider.get(NitriteCollection.class));
-		}
-	}
-
-	/**
-	 * Open the connection of the database at the given location that is
-	 * associated with the needed service and return that service
-	 * 
-	 * This is equivalent to call
-	 * {@link ServiceProvider#getDatabaseService(serviceName, databaseLocation,
-	 * "")}
-	 * 
-	 * @param serviceName
-	 * @param databaseLocation
-	 * @return
-	 * @throws DatabaseControllerUnselectedException
-	 */
-	public DatabaseService<INote> getDatabaseService(String serviceName, String databaseLocation)
-			throws DatabaseControllerUnselectedException {
-		return getDatabaseService(serviceName, databaseLocation, "");
-	}
-
-	/**
-	 * Open the connection of the database associated with the needed service
-	 * and return that service.
-	 * 
-	 * This is equivalent to call
-	 * {@link ServiceProvider#getDatabaseService(serviceName, "", "")}
-	 * 
-	 * @param serviceName
-	 *            Name of the service
-	 * @return An {@link DatabaseService} instance
-	 * @throws DatabaseControllerUnselectedException
-	 *             If the selected service has not been given a
-	 *             {@link IDatabaseController} instance yet
-	 */
-	public DatabaseService<INote> getDatabaseService(String serviceName) throws DatabaseControllerUnselectedException {
-		return getDatabaseService(serviceName, "", "");
-	}
-
-	/**
 	 * Close all existing connections from all services
 	 */
 	public void deregisterAllServices() {
-		for (Entry<String, DatabaseService<INote>> service : serviceMap.entrySet()) {
-			actionProviderFactory.get(service.getKey()).closeConnection();
+		for (Entry<String, DatabaseService<KatalonNote>> service : serviceMap.entrySet()) {
+			actionProviderFactory.get(ServiceName.valueOf(service.getKey())).closeConnection();
 		}
 	}
 
@@ -139,7 +89,7 @@ public class ServiceProvider {
 	 * Register all services. Connections to databases are not open here
 	 */
 	public void registerAllServices() {
-		DatabaseService<INote> service = new DatabaseService<INote>();
-		serviceMap.put(NitriteDatabaseController.class.getName(), service);
+		DatabaseService<KatalonNote> service = new DatabaseService<KatalonNote>();
+		serviceMap.put(ServiceName.Nitrite.toString(), service);
 	}
 }

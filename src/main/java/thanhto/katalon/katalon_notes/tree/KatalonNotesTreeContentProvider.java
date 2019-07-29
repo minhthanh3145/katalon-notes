@@ -4,14 +4,14 @@ import java.util.List;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 
-import thanhto.katalon.katalon_notes.model.INote;
+import thanhto.katalon.katalon_notes.model.KatalonNote;
 
 public class KatalonNotesTreeContentProvider implements ITreeContentProvider {
 
 	@Override
 	public Object[] getChildren(Object arg0) {
-		if (arg0 instanceof INote) {
-			return ((INote) arg0).getChildNotes().toArray();
+		if (arg0 instanceof KatalonNote) {
+			return ((KatalonNote) arg0).getChildNotes().toArray();
 		}
 		return new Object[0];
 	}
@@ -32,8 +32,8 @@ public class KatalonNotesTreeContentProvider implements ITreeContentProvider {
 
 	@Override
 	public Object getParent(Object arg0) {
-		if (arg0 instanceof INote) {
-			return ((INote) arg0).getParent();
+		if (arg0 instanceof KatalonNote) {
+			return ((KatalonNote) arg0).getParent();
 		}
 		return null;
 	}

@@ -9,18 +9,17 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import thanhto.katalon.katalon_notes.controller.NitriteDatabaseController;
-import thanhto.katalon.katalon_notes.model.INote;
 import thanhto.katalon.katalon_notes.model.KatalonNote;
 
 public class TestDatabaseService {
 
 	private static Long mockId = new Long(5);
 
-	private static INote mockNote = new KatalonNote("mock", "mock");
+	private static KatalonNote mockNote = new KatalonNote("mock", "mock");
 
-	private static List<INote> mockNotes = Arrays.asList(mockNote);
+	private static List<KatalonNote> mockNotes = Arrays.asList(mockNote);
 
-	private static DatabaseService<INote> noteDatabaseService;
+	private static DatabaseService<KatalonNote> noteDatabaseService;
 
 	private static NitriteDatabaseController controller;
 
@@ -30,7 +29,7 @@ public class TestDatabaseService {
 		Mockito.when(controller.getById(mockId)).thenReturn(mockNote);
 		Mockito.when(controller.getByName("")).thenReturn(mockNotes);
 		Mockito.when(controller.getByCustomQuery("")).thenReturn(mockNotes);
-		noteDatabaseService = new DatabaseService<INote>();
+		noteDatabaseService = new DatabaseService<KatalonNote>();
 		noteDatabaseService.setController(controller);
 	}
 
@@ -51,7 +50,7 @@ public class TestDatabaseService {
 
 	@Test
 	public void testCreate() {
-		INote mockNoteWithId = mockNote;
+		KatalonNote mockNoteWithId = mockNote;
 		mockNoteWithId.setId(mockId);
 		Mockito.when(controller.create(mockNote)).thenReturn(mockNoteWithId);
 		Assert.assertEquals(mockNoteWithId, noteDatabaseService.create(mockNote));
@@ -59,7 +58,7 @@ public class TestDatabaseService {
 
 	@Test
 	public void testUpdate() {
-		INote mockNoteWithId = mockNote;
+		KatalonNote mockNoteWithId = mockNote;
 		mockNoteWithId.setId(mockId);
 		mockNoteWithId.setTitle("Updated");
 		Mockito.when(controller.update(mockNote)).thenReturn(mockNoteWithId);
@@ -68,7 +67,7 @@ public class TestDatabaseService {
 
 	@Test
 	public void testDelete() {
-		INote mockNoteWithId = mockNote;
+		KatalonNote mockNoteWithId = mockNote;
 		mockNoteWithId.setId(mockId);
 		Mockito.when(controller.delete(mockNote)).thenReturn(mockNoteWithId);
 		Assert.assertEquals(mockNoteWithId, noteDatabaseService.delete(mockNote));

@@ -1,15 +1,16 @@
 package thanhto.katalon.katalon_notes.provider;
 
 import org.dizitart.no2.Nitrite;
-import org.dizitart.no2.NitriteCollection;
+import org.dizitart.no2.objects.ObjectRepository;
 
 import com.katalon.platform.api.service.ApplicationManager;
 
+import thanhto.katalon.katalon_notes.model.KatalonNote;
+
 public class NitriteDatabaseActionProvider implements IDatabaseActionProvider {
 
-	private static final String NOTES_COLLECTION = "notes";
 	private Nitrite db;
-	private NitriteCollection collection;
+	private ObjectRepository<KatalonNote> collection;
 	private String databaseFilePath = "";
 
 	@Override
@@ -20,7 +21,7 @@ public class NitriteDatabaseActionProvider implements IDatabaseActionProvider {
 	@Override
 	public void openConnection(String... credentials) {
 		db = getDatabase(credentials);
-		collection = db.getCollection(NOTES_COLLECTION);
+		collection = db.getRepository(KatalonNote.class);
 	}
 
 	private Nitrite getDatabase(String... credentials) {
@@ -39,8 +40,9 @@ public class NitriteDatabaseActionProvider implements IDatabaseActionProvider {
 			String password = credentials[1];
 			database = Nitrite.builder().compressed().filePath(pathToDatabase).openOrCreate(username, password);
 		} else {
-			database = Nitrite.builder().compressed().filePath(pathToDatabase).openOrCreate("katalon-notes",
-					"katalon_notes");
+			database = Nitrite.builder().compressed()
+					.filePath(pathToDatabase)
+					.openOrCreate("katalon-notes","katalon_notes");
 		}
 		return database;
 	}
@@ -52,6 +54,7 @@ public class NitriteDatabaseActionProvider implements IDatabaseActionProvider {
 	@Override
 	public void closeConnection() {
 		if (db != null) {
+			db.commit();
 			db.close();
 		}
 	}
@@ -73,16 +76,9 @@ public class NitriteDatabaseActionProvider implements IDatabaseActionProvider {
 	}
 
 	@Override
-	public void commit() {
-		if (db != null && !db.isClosed()) {
-			db.commit();
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	public <E extends V, V> E get(Class<V> clazz) {
-		if (clazz.getName().equals(NitriteCollection.class.getName())) {
-			return (E) collection;
+	public Object get(String key) {
+		if (key != null && key.equals("objectRepository")) {
+			return collection;
 		}
 		return null;
 	}

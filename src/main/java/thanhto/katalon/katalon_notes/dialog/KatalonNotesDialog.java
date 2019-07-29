@@ -1,6 +1,7 @@
 package thanhto.katalon.katalon_notes.dialog;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,12 +45,10 @@ import com.katalon.platform.api.service.ApplicationManager;
 import com.katalon.platform.api.ui.UISynchronizeService;
 
 import thanhto.katalon.katalon_notes.constant.CustomQueryConstants;
-import thanhto.katalon.katalon_notes.controller.NitriteDatabaseController;
-import thanhto.katalon.katalon_notes.exception.DatabaseControllerUnselectedException;
+import thanhto.katalon.katalon_notes.constant.ServiceName;
 import thanhto.katalon.katalon_notes.exception.PluginPreferenceIsNotAvailable;
 import thanhto.katalon.katalon_notes.exception.RendererNotRegisteredException;
 import thanhto.katalon.katalon_notes.factory.DatabaseActionProviderFactory;
-import thanhto.katalon.katalon_notes.model.INote;
 import thanhto.katalon.katalon_notes.model.KatalonNote;
 import thanhto.katalon.katalon_notes.provider.ServiceProvider;
 import thanhto.katalon.katalon_notes.renderer.CommonMarkRenderer;
@@ -70,24 +69,26 @@ public class KatalonNotesDialog extends Dialog {
 	private Text txtTitle;
 	private Browser browserPreview;
 	private Composite descriptionPreviewComposite;
-	private INote selectedNote;
+	private KatalonNote selectedNote;
 	private Label lblInformation;
 	private MenuItem add;
 	private MenuItem delete;
 	private MenuItem refreshHtmlRenderer;
+	private MenuItem debug;
 
 	private IRenderer htmlRenderer;
 	private UISynchronizeService uiSynchronizeService;
-	private DatabaseService<INote> databaseService;
+	private DatabaseService<KatalonNote> databaseService;
+
+	private boolean isDebug = false;
 
 	private DatabaseActionProviderFactory actionProviderFactory = DatabaseActionProviderFactory.getInstance();
 
 	SelectionAdapter addSelectionAdapter = new SelectionAdapter() {
 		@Override
 		public void widgetSelected(SelectionEvent e) {
-			INote parentNote = selectedNote;
-			INote savedChildNote = new KatalonNote("Default Title", "Default Content");
-			INote savedParentNote = null;
+			KatalonNote parentNote = selectedNote;
+			KatalonNote savedParentNote = null;
 			if (parentNote != null) {
 				if (parentNote.getId() == null) {
 					savedParentNote = databaseService.create(parentNote);
@@ -95,9 +96,10 @@ public class KatalonNotesDialog extends Dialog {
 					savedParentNote = databaseService.update(parentNote);
 				}
 			}
+			KatalonNote savedChildNote = new KatalonNote("Default Title", "Default Content");
 			savedChildNote.setParent(savedParentNote);
-			INote updatedChildNote = databaseService.create(savedChildNote);
-			setSelectedNote(updatedChildNote);
+			databaseService.create(savedChildNote);
+			setSelectedNote(savedChildNote);
 			refresh();
 		}
 	};
@@ -118,6 +120,14 @@ public class KatalonNotesDialog extends Dialog {
 		}
 	};
 
+	SelectionAdapter debugSelectionAdpater = new SelectionAdapter() {
+		@Override
+		public void widgetSelected(SelectionEvent e) {
+			isDebug = !isDebug;
+			refresh();
+		}
+	};
+
 	private List<SelectionAdapter> selectionAdapters = Arrays.asList(addSelectionAdapter, deleteSelectionAdapter,
 			refreshHtmlRendererSelectionAdapter);
 
@@ -127,18 +137,21 @@ public class KatalonNotesDialog extends Dialog {
 	 */
 	public KatalonNotesDialog(Shell parentShell) {
 		super(parentShell);
-		getService("");
+		reloadService("");
 		this.uiSynchronizeService = ApplicationManager.getInstance().getUIServiceManager()
 				.getService(UISynchronizeService.class);
 	}
 
-	private void getService(String atLocation) {
-		try {
-			databaseService = ServiceProvider.getInstance().getDatabaseService(
-					NitriteDatabaseController.class.getName(), atLocation, "katalon-notes", "katalon_notes");
-		} catch (DatabaseControllerUnselectedException exception) {
-			System.out.println(ExceptionUtils.getStackTrace(exception));
-		}
+	/**
+	 * Reload service at the specified location. If an empty string is passed-in
+	 * then the current Katalon project folder will be used
+	 * 
+	 * @param atLocation
+	 *            Absolute path to the folder containing database file
+	 */
+	private void reloadService(String atLocation) {
+		databaseService = ServiceProvider.getInstance().getDatabaseService(ServiceName.Nitrite, atLocation,
+				"katalon-notes", "katalon_notes");
 	}
 
 	@Override
@@ -226,7 +239,7 @@ public class KatalonNotesDialog extends Dialog {
 
 				if (tvKatalonNotes.getSelection() instanceof IStructuredSelection) {
 					IStructuredSelection selection = (IStructuredSelection) tvKatalonNotes.getSelection();
-					INote note = (INote) selection.getFirstElement();
+					KatalonNote note = (KatalonNote) selection.getFirstElement();
 					setSelectedNote(note);
 				}
 			}
@@ -253,6 +266,11 @@ public class KatalonNotesDialog extends Dialog {
 		refreshHtmlRenderer.setText("Refresh HTML Renderer");
 		refreshHtmlRenderer.setToolTipText("Refresh HTML Renderer to reflect changes in user-setting");
 		refreshHtmlRenderer.addSelectionListener(refreshHtmlRendererSelectionAdapter);
+
+		debug = new MenuItem(menu, SWT.NONE);
+		debug.setText("Debug: " + isDebug);
+		debug.setToolTipText("Turn on/off debugging mode");
+		debug.addSelectionListener(debugSelectionAdpater);
 
 	}
 
@@ -299,8 +317,13 @@ public class KatalonNotesDialog extends Dialog {
 		btnSave.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				INote unsavedNote = selectedNote;
-				INote savedNote = null;
+				KatalonNote unsavedNote = selectedNote;
+				KatalonNote savedNote = null;
+
+				if (unsavedNote == null) {
+					return;
+				}
+
 				if (unsavedNote.getId() == null) {
 					savedNote = databaseService.create(unsavedNote);
 				} else {
@@ -347,21 +370,26 @@ public class KatalonNotesDialog extends Dialog {
 				if (txtDatabase.equals("")) {
 					String currentProject = ApplicationManager.getInstance().getProjectManager().getCurrentProject()
 							.getFolderLocation();
-					actionProviderFactory.get(databaseService.getController().getClass().getName())
+					actionProviderFactory
+							.get(ServiceName.serviceNameFrom(databaseService.getController().getClass().getName()))
 							.setLocalDatabaseLocation(currentProject);
+					uiSynchronizeService.syncExec(() -> {
+						txtDatabase.setText(currentProject);
+					});
 				} else {
 					File databaseFolder = new File(txtDatabase.getText());
 					if (databaseFolder.isDirectory()) {
 						String newDirectory = databaseFolder.getAbsolutePath();
 						try {
-							System.out.println(databaseService.getController().getClass().getName());
-							actionProviderFactory.get(databaseService.getController().getClass().getName())
+							actionProviderFactory
+									.get(ServiceName
+											.serviceNameFrom(databaseService.getController().getClass().getName()))
 									.switchDatabase(newDirectory);
-							// Ask for the service again now it's anew
-							getService(newDirectory);
+							reloadService(newDirectory);
 							lblInformation.setText("Switched to new database !");
 							refresh();
 						} catch (Exception exception) {
+
 							ErrorDialog.openError(getParentShell(), "Error when switching database",
 									ExceptionUtils.getStackTrace(exception),
 									new Status(Status.ERROR, "KatalonNotesDialog", exception.getMessage()),
@@ -390,7 +418,7 @@ public class KatalonNotesDialog extends Dialog {
 		lblInformation.setText("Manage your notes !");
 	}
 
-	private void setSelectedNote(INote note) {
+	private void setSelectedNote(KatalonNote note) {
 		this.selectedNote = note;
 	}
 
@@ -402,11 +430,13 @@ public class KatalonNotesDialog extends Dialog {
 		}
 	}
 
-	/**
-	 * Reload displaying notes and refresh tree viewers
-	 */
 	private void refresh() {
-		List<INote> notes = databaseService.getByCustomQuery(CustomQueryConstants.NOTES_WITHOUT_PARENT);
+		List<KatalonNote> notes = new ArrayList<>();
+		if (!isDebug) {
+			notes.addAll(databaseService.getByCustomQuery(CustomQueryConstants.NOTES_WITHOUT_PARENT));
+		} else {
+			notes.addAll(databaseService.getByCustomQuery(CustomQueryConstants.ALL));
+		}
 		uiSynchronizeService.syncExec(() -> {
 			if (!tvKatalonNotes.getControl().isDisposed()) {
 				tvKatalonNotes.setInput(notes);
@@ -429,19 +459,21 @@ public class KatalonNotesDialog extends Dialog {
 						return;
 					}
 
-					if (((INote) selection.getFirstElement()).equals(selectedNote)) {
+					KatalonNote note = (KatalonNote) selection.getFirstElement();
+
+					if (note.equals(selectedNote)) {
 						return;
 					}
 
-					INote savedSelectedNote = null;
+					KatalonNote previouslySelectedNote = null;
 					if (selectedNote != null) {
 						if (selectedNote.getId() == null) {
-							savedSelectedNote = databaseService.create(selectedNote);
+							previouslySelectedNote = databaseService.create(selectedNote);
 						} else {
-							savedSelectedNote = databaseService.update(selectedNote);
+							previouslySelectedNote = databaseService.update(selectedNote);
 						}
 					}
-					setSelectedNote((INote) selection.getFirstElement());
+					setSelectedNote(note);
 					if (selectedNote != null) {
 						uiSynchronizeService.syncExec(() -> {
 							if (txtTitle.isDisposed() || txtContent.isDisposed()) {
@@ -451,8 +483,8 @@ public class KatalonNotesDialog extends Dialog {
 							txtContent.setText(selectedNote.getContent());
 						});
 					}
-					if (savedSelectedNote != null) {
-						String title = savedSelectedNote.getTitle();
+					if (previouslySelectedNote != null) {
+						String title = previouslySelectedNote.getTitle();
 						uiSynchronizeService.syncExec(() -> {
 							if (!lblInformation.isDisposed()) {
 								lblInformation.setText(title + " is updated !");

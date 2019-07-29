@@ -15,13 +15,13 @@ import com.katalon.platform.api.extension.ToolItemWithMenuDescription;
 import thanhto.katalon.katalon_notes.controller.NitriteDatabaseController;
 import thanhto.katalon.katalon_notes.dialog.KatalonNotesDialog;
 import thanhto.katalon.katalon_notes.exception.DatabaseControllerUnselectedException;
-import thanhto.katalon.katalon_notes.model.INote;
+import thanhto.katalon.katalon_notes.model.KatalonNote;
 import thanhto.katalon.katalon_notes.provider.ServiceProvider;
 import thanhto.katalon.katalon_notes.service.DatabaseService;
 
 public class KatalonNotesToolItemWithMenuDescription implements ToolItemWithMenuDescription {
 	private Menu optionMenu;
-	private DatabaseService<INote> service;
+	private DatabaseService<KatalonNote> service;
 
 	@Override
 	public Menu getMenu(Control arg0) {
