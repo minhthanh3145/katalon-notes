@@ -8,7 +8,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 
 import thanhto.katalon.katalon_notes.constant.ImageConstants;
-import thanhto.katalon.katalon_notes.model.INote;
+import thanhto.katalon.katalon_notes.model.KatalonNote;
 import thanhto.katalon.katalon_notes.util.ImageUtil;
 
 public class KatalonNotesTreeLabelProvider extends CellLabelProvider {
@@ -16,8 +16,8 @@ public class KatalonNotesTreeLabelProvider extends CellLabelProvider {
 	@Override
 	public void update(ViewerCell cell) {
 		String name = "";
-		if (cell.getElement() != null && cell.getElement() instanceof INote) {
-			name = ((INote) cell.getElement()).getTitle();
+		if (cell.getElement() != null && cell.getElement() instanceof KatalonNote) {
+			name = ((KatalonNote) cell.getElement()).getTitle();
 		}
 		cell.setText(name);
 		try {

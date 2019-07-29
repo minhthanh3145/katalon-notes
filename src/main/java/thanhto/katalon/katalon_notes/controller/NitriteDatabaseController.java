@@ -3,207 +3,133 @@ package thanhto.katalon.katalon_notes.controller;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 
-import org.dizitart.no2.Cursor;
-import org.dizitart.no2.Document;
-import org.dizitart.no2.Nitrite;
-import org.dizitart.no2.NitriteCollection;
-import org.dizitart.no2.NitriteId;
-import org.dizitart.no2.WriteResult;
-import org.dizitart.no2.filters.Filters;
-
-import com.katalon.platform.api.service.ApplicationManager;
+import org.dizitart.no2.objects.Cursor;
+import org.dizitart.no2.objects.ObjectRepository;
+import org.dizitart.no2.objects.filters.ObjectFilters;
 
 import thanhto.katalon.katalon_notes.constant.CustomQueryConstants;
-import thanhto.katalon.katalon_notes.model.INote;
 import thanhto.katalon.katalon_notes.model.KatalonNote;
-import thanhto.katalon.katalon_notes.util.NoteUtils;
 
-public class NitriteDatabaseController implements IDatabaseController<INote> {
+public class NitriteDatabaseController extends AbstractDatabaseController<KatalonNote> {
 
-	private static final String NOTES_COLLECTION = "notes";
-	private Nitrite db;
-	private NitriteCollection collection;
-	private String databaseFilePath = "";
+	private ObjectRepository<KatalonNote> collection;
+
+	@SuppressWarnings("unchecked")
+	public NitriteDatabaseController() {
+		super();
+		collection = (ObjectRepository<KatalonNote>) getDatabaseArtifact("objectRepository");
+	}
 
 	@Override
-	public List<INote> getByName(String title) {
-		List<INote> notes = new ArrayList<>();
-		Cursor results = collection.find(Filters.eq("title", title));
-		Iterator<Document> it = results.iterator();
-		while (it.hasNext()) {
-			Document doc = it.next();
-			INote note = NoteUtils.katalonNoteFrom(doc);
-			notes.add(note);
+	public List<KatalonNote> getByName(String title) {
+		List<KatalonNote> notes = new ArrayList<>();
+		Iterator<KatalonNote> note = collection.find(ObjectFilters.eq("title", title)).iterator();
+		while (note.hasNext()) {
+			KatalonNote next = note.next();
+			notes.add(next);
 		}
 		return notes;
 	}
 
 	@Override
-	public INote create(INote note) {
-		if (note == null || note.getId() != null) {
-			return note;
-		}
-		Document doc = NoteUtils.from(note);
-		WriteResult result = collection.insert(doc);
-		note.setId(result.iterator().next().getIdValue());
-		for (int i = 0; i < note.getChildNotes().size(); i++) {
-			INote childNote = note.getChildNotes().get(i);
-			create(childNote);
-		}
-		update(note);
-		return note;
-	}
-
-	@Override
-	public INote update(INote note) {
-		if (note == null || note.getId() == null) {
-			System.out.println("------------------------");
-			return note;
-		}
-
-		Document doc = collection.getById(NitriteId.createId(note.getId()));
-		INote originalNote = NoteUtils.katalonNoteFrom(doc);
-
-		if (note.getParent() != null && !note.getParent().equals(originalNote.getParent())) {
-			System.out.println(note.getParent().toString() + " " + originalNote.getParent().toString());
-		}
-
-		Optional.ofNullable(originalNote.getParent()).ifPresent(parent -> {
-			if (!parent.equals(note.getParent())) {
-				parent.getChildNotes().removeIf(child -> child.equals(originalNote));
-			}
-		});
-
-		Optional.ofNullable(note.getParent()).ifPresent(parent -> {
-			INote originalNoteInParent = parent.getChildNotes().stream().filter(a -> a.getId().equals(note.getId()))
-					.findFirst().orElse(null);
-			if (originalNoteInParent != null) {
-				NoteUtils.copy(note, originalNoteInParent);
-			} else {
-				parent.getChildNotes().add(note);
-			}
-		});
-
-		System.out.println("BEFORE UPDATE");
-		System.out.println("Incoming: " + "(" + note.getId() + ")" + note.getTitle() + " " + note.getContent());
-		System.out.println("Original: " + "(" + originalNote.getId() + ")" + originalNote.getTitle() + " "
-				+ originalNote.getContent());
-
-		doc = NoteUtils.copy(note, doc);
-		collection.update(doc);
-
-		doc = collection.getById(NitriteId.createId(note.getId()));
-		INote tmp = NoteUtils.katalonNoteFrom(doc);
-		System.out.println("AFTER UPDATE");
-		System.out.println("Incoming: " + "(" + note.getId() + ")" + note.getTitle() + " " + note.getContent());
-		System.out.println("Original: " + "(" + tmp.getId() + ")" + tmp.getTitle() + " " + tmp.getContent());
-
-		return note;
-	}
-
-	@Override
-	public INote delete(INote note) {
-		if (note == null || note.getId() == null) {
+	public KatalonNote create(KatalonNote note) {
+		if (note == null) {
 			return null;
 		}
 
-		Document doc = collection.getById(NitriteId.createId(note.getId()));
-		collection.remove(doc);
-
-		INote originalNote = NoteUtils.katalonNoteFrom(doc);
-
-		Optional.ofNullable(originalNote.getParent()).ifPresent(parent -> {
-			parent.getChildNotes().remove(originalNote);
-		});
-
-		for (int i = 0; i < originalNote.getChildNotes().size(); i++) {
-			INote childNote = note.getChildNotes().get(i);
-			delete(childNote);
+		KatalonNote parent = note.getParent();
+		if (parent != null) {
+			parent.addChildNote(note);
+			update(parent);
 		}
+
+		collection.insert(note);
+
+		recursiveCreateChildFor(note);
+
 		return note;
+	}
+
+	private void recursiveCreateChildFor(KatalonNote note) {
+		note.getChildNotes().forEach(child -> {
+			collection.insert(child);
+			recursiveCreateChildFor(child);
+		});
 	}
 
 	@Override
-	public INote getById(Long id) {
-		Document doc = collection.getById(NitriteId.createId(id));
-		if (doc == null) {
-			System.out.println("Document for ID: " + id + " doesn't exist !");
-			return null;
+	public KatalonNote update(KatalonNote note) {
+		if (note == null) {
+			return note;
 		}
-		KatalonNote note = NoteUtils.katalonNoteFrom(doc);
+
+		KatalonNote upward = note;
+		while (upward != null) {
+			collection.update(upward);
+			upward = upward.getParent();
+		}
+
+		recursiveUpdateChildFor(note);
+
 		return note;
 	}
 
-	/**
-	 * Query notes based on some built-in conditions ( @see
-	 * {@link CustomQueryConstants})
-	 * 
-	 * @param query
-	 *            A query string
-	 * @return A list of {@link INote} satisfying the query
-	 * 
-	 */
-	public List<INote> getByCustomQuery(String query) {
-		List<INote> notes = new ArrayList<>();
+	private void recursiveUpdateChildFor(KatalonNote note) {
+		note.getChildNotes().forEach(child -> {
+			collection.update(child);
+			recursiveUpdateChildFor(child);
+		});
+	}
+
+	@Override
+	public KatalonNote delete(KatalonNote note) {
+		if (note == null) {
+			return null;
+		}
+
+		collection.remove(note);
+		recursiveRemoveChildFor(note);
+
+		KatalonNote parent = note.getParent();
+		if (parent != null) {
+			parent.getChildNotes().remove(note);
+			update(parent);
+		}
+
+		return note;
+	}
+
+	private void recursiveRemoveChildFor(KatalonNote note) {
+		note.getChildNotes().forEach(child -> {
+			collection.remove(child);
+			recursiveRemoveChildFor(child);
+		});
+	}
+
+	@Override
+	public KatalonNote getById(Long id) {
+		KatalonNote note = collection.find(ObjectFilters.eq("id", id)).firstOrDefault();
+		return note;
+	}
+
+	public List<KatalonNote> getByCustomQuery(String query) {
+		List<KatalonNote> notes = new ArrayList<>();
 		if (query.contains(CustomQueryConstants.NOTES_WITHOUT_PARENT)) {
-			Cursor results = collection.find(Filters.eq("parent", null));
-			Iterator<Document> it = results.iterator();
+			Cursor<KatalonNote> results = collection.find(ObjectFilters.eq("parent", null));
+			Iterator<KatalonNote> it = results.iterator();
 			while (it.hasNext()) {
-				Document current = it.next();
-				KatalonNote note = NoteUtils.katalonNoteFrom(current);
-				notes.add(note);
+				KatalonNote current = it.next();
+				notes.add(current);
+			}
+		} else if (query.contains(CustomQueryConstants.ALL)) {
+			Cursor<KatalonNote> results = collection.find();
+			Iterator<KatalonNote> it = results.iterator();
+			while (it.hasNext()) {
+				KatalonNote current = it.next();
+				notes.add(current);
 			}
 		}
 		return notes;
-	}
-
-	@Override
-	public void openConnection() {
-		openConnection("");
-	}
-
-	@Override
-	public void openConnection(String... credentials) {
-		db = getDatabase(credentials);
-		collection = db.getCollection(NOTES_COLLECTION);
-	}
-
-	private Nitrite getDatabase(String... credentials) {
-		closeConnection();
-		Nitrite database = null;
-		String currentProjectPath = getCurrentProjectPath();
-		String pathToDatabase = (databaseFilePath.equals("") ? (currentProjectPath) : databaseFilePath)
-				+ "/katalon_notes.db";
-		if (credentials != null && credentials.length == 2) {
-			String username = credentials[0];
-			String password = credentials[1];
-			database = Nitrite.builder().compressed().filePath(pathToDatabase).openOrCreate(username, password);
-		} else {
-			database = Nitrite.builder().compressed().filePath(pathToDatabase).openOrCreate();
-		}
-		return database;
-	}
-
-	public String getCurrentProjectPath() {
-		return ApplicationManager.getInstance().getProjectManager().getCurrentProject().getFolderLocation();
-	}
-
-	@Override
-	public void closeConnection() {
-		if (db != null) {
-			db.close();
-		}
-	}
-
-	@Override
-	public void setLocalDatabaseLocation(String location) {
-		this.databaseFilePath = location;
-	}
-
-	@Override
-	public String getLocalDatabaseLocation() {
-		return this.databaseFilePath;
 	}
 }

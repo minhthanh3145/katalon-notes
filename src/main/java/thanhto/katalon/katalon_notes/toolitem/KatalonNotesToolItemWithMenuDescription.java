@@ -12,15 +12,16 @@ import org.eclipse.swt.widgets.MenuItem;
 
 import com.katalon.platform.api.extension.ToolItemWithMenuDescription;
 
+import thanhto.katalon.katalon_notes.controller.NitriteDatabaseController;
 import thanhto.katalon.katalon_notes.dialog.KatalonNotesDialog;
 import thanhto.katalon.katalon_notes.exception.DatabaseControllerUnselectedException;
-import thanhto.katalon.katalon_notes.model.INote;
+import thanhto.katalon.katalon_notes.model.KatalonNote;
 import thanhto.katalon.katalon_notes.provider.ServiceProvider;
 import thanhto.katalon.katalon_notes.service.DatabaseService;
 
 public class KatalonNotesToolItemWithMenuDescription implements ToolItemWithMenuDescription {
 	private Menu optionMenu;
-	private DatabaseService<INote> service;
+	private DatabaseService<KatalonNote> service;
 
 	@Override
 	public Menu getMenu(Control arg0) {
@@ -47,21 +48,14 @@ public class KatalonNotesToolItemWithMenuDescription implements ToolItemWithMenu
 			}
 		}
 
-		MenuItem addNewNoteMenuItem = new MenuItem(optionMenu, SWT.PUSH);
-		addNewNoteMenuItem.setText("Open Katalon Notes");
-		addNewNoteMenuItem.setToolTipText("Manage your notes through a single interface");
+		MenuItem openKatalonNotesMenuItem = new MenuItem(optionMenu, SWT.PUSH);
+		openKatalonNotesMenuItem.setText("Open Katalon Notes");
+		openKatalonNotesMenuItem.setToolTipText("Manage your notes through a single interface");
 
-		addNewNoteMenuItem.addSelectionListener(new SelectionAdapter() {
+		openKatalonNotesMenuItem.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				try {
-					service = ServiceProvider.getInstance().getDatabaseService("nitrite", "", "katalon-notes",
-							"katalon_notes");
-				} catch (DatabaseControllerUnselectedException exception) {
-					System.out.println(ExceptionUtils.getStackTrace(exception));
-				}
-				KatalonNotesDialog addNewNoteDialog = new KatalonNotesDialog(Display.getCurrent().getActiveShell(),
-						service);
+				KatalonNotesDialog addNewNoteDialog = new KatalonNotesDialog(Display.getCurrent().getActiveShell());
 				if (addNewNoteDialog.open() == Window.OK) {
 
 				}
