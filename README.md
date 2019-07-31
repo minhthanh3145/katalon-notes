@@ -5,7 +5,9 @@
 **By**: [Quynh Lam](https://www.behance.net/luongquynha1e6)
 
 
-Katalon Notes is a Katalon plug-in that allows you to take notes in-app easily
+Katalon Notes is a Katalon plug-in that allows you to take notes in-app easily. 
+
+*More details about why I do this is in [Wiki](https://github.com/minhthanh3145/katalon-notes/wiki)*
 
 
 ### Features (existing and upcoming)
