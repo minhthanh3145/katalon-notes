@@ -12,6 +12,7 @@ import com.katalon.platform.api.model.ProjectEntity;
 import com.katalon.platform.api.preference.PluginPreference;
 import com.katalon.platform.api.service.ApplicationManager;
 
+import thanhto.katalon.katalon_notes.api.IRenderer;
 import thanhto.katalon.katalon_notes.exception.PluginPreferenceIsNotAvailable;
 import thanhto.katalon.katalon_notes.exception.RendererNotRegisteredException;
 
@@ -36,7 +37,7 @@ public class HtmlRendererFactory {
 
 	/**
 	 * Use reflection to load all classes implementing
-	 * {@link thanhto.katalon.katalon_notes.renderer.IRenderer}
+	 * {@link thanhto.katalon.katalon_notes.api.IRenderer}
 	 */
 	public HtmlRendererFactory() {
 		rendererMap = new HashMap<>();

@@ -2,7 +2,7 @@ package thanhto.katalon.katalon_notes.exception;
 
 /**
  * Throw if trying to get a renderer instance from a class that does not
- * implement {@link thanhto.katalon.katalon_notes.renderer.IRenderer}
+ * implement {@link thanhto.katalon.katalon_notes.api.IRenderer}
  * 
  * @author thanhto
  *

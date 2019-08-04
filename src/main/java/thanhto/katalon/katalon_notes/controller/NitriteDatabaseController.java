@@ -11,6 +11,13 @@ import org.dizitart.no2.objects.filters.ObjectFilters;
 import thanhto.katalon.katalon_notes.constant.CustomQueryConstants;
 import thanhto.katalon.katalon_notes.model.KatalonNote;
 
+/**
+ * Responsible for CRUD operations of a Nitrite database instance on a Katalon
+ * Note model
+ * 
+ * @author thanhto
+ *
+ */
 public class NitriteDatabaseController extends AbstractDatabaseController<KatalonNote> {
 
 	private ObjectRepository<KatalonNote> collection;

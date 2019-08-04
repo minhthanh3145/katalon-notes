@@ -5,8 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import thanhto.katalon.katalon_notes.api.IDatabaseActionProvider;
+import thanhto.katalon.katalon_notes.api.IDatabaseController;
 import thanhto.katalon.katalon_notes.constant.ServiceName;
-import thanhto.katalon.katalon_notes.controller.IDatabaseController;
 import thanhto.katalon.katalon_notes.factory.DatabaseActionProviderFactory;
 import thanhto.katalon.katalon_notes.factory.DatabaseArtifactFactory;
 import thanhto.katalon.katalon_notes.model.KatalonNote;
@@ -20,7 +21,7 @@ import thanhto.katalon.katalon_notes.service.DatabaseService;
  */
 public class ServiceProvider {
 	private static ServiceProvider _instance;
-	private Map<String, DatabaseService<KatalonNote>> serviceMap;
+	private Map<ServiceName, DatabaseService<KatalonNote>> serviceMap;
 	private DatabaseActionProviderFactory actionProviderFactory = DatabaseActionProviderFactory.getInstance();
 
 	public static ServiceProvider getInstance() {
@@ -58,10 +59,10 @@ public class ServiceProvider {
 	@SuppressWarnings("unchecked")
 	public DatabaseService<KatalonNote> getDatabaseService(ServiceName serviceName, String databaseLocation,
 			String... credentials) {
-		DatabaseService<KatalonNote> service = serviceMap.get(serviceName.toString());
+		DatabaseService<KatalonNote> service = serviceMap.get(serviceName);
 
 		IDatabaseActionProvider actionProvider = actionProviderFactory.get(serviceName);
-		actionProvider.setLocalDatabaseLocation(databaseLocation);
+		actionProvider.setDatabaseLocation(databaseLocation);
 		actionProvider.openConnection(credentials);
 
 		DatabaseArtifactFactory.getInstance().createArtifactsFor(serviceName);
@@ -80,8 +81,8 @@ public class ServiceProvider {
 	 * Close all existing connections from all services
 	 */
 	public void deregisterAllServices() {
-		for (Entry<String, DatabaseService<KatalonNote>> service : serviceMap.entrySet()) {
-			actionProviderFactory.get(ServiceName.valueOf(service.getKey())).closeConnection();
+		for (Entry<ServiceName, DatabaseService<KatalonNote>> service : serviceMap.entrySet()) {
+			actionProviderFactory.get(service.getKey()).closeConnection();
 		}
 	}
 
@@ -90,6 +91,6 @@ public class ServiceProvider {
 	 */
 	public void registerAllServices() {
 		DatabaseService<KatalonNote> service = new DatabaseService<KatalonNote>();
-		serviceMap.put(ServiceName.Nitrite.toString(), service);
+		serviceMap.put(ServiceName.Nitrite, service);
 	}
 }

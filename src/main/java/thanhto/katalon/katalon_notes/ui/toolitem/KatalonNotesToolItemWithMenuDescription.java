@@ -1,6 +1,5 @@
-package thanhto.katalon.katalon_notes.toolitem;
+package thanhto.katalon.katalon_notes.ui.toolitem;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -12,16 +11,10 @@ import org.eclipse.swt.widgets.MenuItem;
 
 import com.katalon.platform.api.extension.ToolItemWithMenuDescription;
 
-import thanhto.katalon.katalon_notes.controller.NitriteDatabaseController;
-import thanhto.katalon.katalon_notes.dialog.KatalonNotesDialog;
-import thanhto.katalon.katalon_notes.exception.DatabaseControllerUnselectedException;
-import thanhto.katalon.katalon_notes.model.KatalonNote;
-import thanhto.katalon.katalon_notes.provider.ServiceProvider;
-import thanhto.katalon.katalon_notes.service.DatabaseService;
+import thanhto.katalon.katalon_notes.ui.dialog.KatalonNotesDialog;
 
 public class KatalonNotesToolItemWithMenuDescription implements ToolItemWithMenuDescription {
 	private Menu optionMenu;
-	private DatabaseService<KatalonNote> service;
 
 	@Override
 	public Menu getMenu(Control arg0) {
@@ -75,7 +68,7 @@ public class KatalonNotesToolItemWithMenuDescription implements ToolItemWithMenu
 
 	@Override
 	public String toolItemId() {
-		return "thanhto.katalon.katalon_notes.katalonNotesToolItemDescription";
+		return "thanhto.katalon.katalon_notes.ui.katalonNotesToolItemDescription";
 	}
 
 }

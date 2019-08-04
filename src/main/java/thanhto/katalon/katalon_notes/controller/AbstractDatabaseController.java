@@ -1,5 +1,6 @@
 package thanhto.katalon.katalon_notes.controller;
 
+import thanhto.katalon.katalon_notes.api.IDatabaseController;
 import thanhto.katalon.katalon_notes.factory.DatabaseArtifactFactory;
 
 public abstract class AbstractDatabaseController<T> implements IDatabaseController<T> {

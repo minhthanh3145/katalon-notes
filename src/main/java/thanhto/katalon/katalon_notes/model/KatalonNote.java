@@ -11,7 +11,6 @@ import org.dizitart.no2.objects.Id;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
-import thanhto.katalon.katalon_notes.util.NoteObjectResolver;
 
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id", scope = KatalonNote.class)
 public class KatalonNote implements Serializable {
