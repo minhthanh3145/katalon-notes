@@ -3,9 +3,9 @@ package thanhto.katalon.katalon_notes.factory;
 import java.util.HashMap;
 import java.util.Map;
 
+import thanhto.katalon.katalon_notes.api.IDatabaseActionProvider;
 import thanhto.katalon.katalon_notes.constant.ServiceName;
 import thanhto.katalon.katalon_notes.controller.NitriteDatabaseController;
-import thanhto.katalon.katalon_notes.provider.IDatabaseActionProvider;
 import thanhto.katalon.katalon_notes.provider.ServiceProvider;
 
 /**
@@ -47,7 +47,7 @@ public class DatabaseArtifactFactory {
 
 	/**
 	 * Should be used by the client
-	 * {@link thanhto.katalon.katalon_notes.controller.IDatabaseController} to
+	 * {@link thanhto.katalon.katalon_notes.api.IDatabaseController} to
 	 * retrieve needed database artifacts
 	 * 
 	 * @param databaseControllerName
@@ -74,7 +74,7 @@ public class DatabaseArtifactFactory {
 	 * 
 	 * <p>
 	 * Client
-	 * {@link thanhto.katalon.katalon_notes.controller.IDatabaseController}
+	 * {@link thanhto.katalon.katalon_notes.api.IDatabaseController}
 	 * should not use this method because this method assumes prerequisites that
 	 * can only be satisfied by
 	 * {@link thanhto.katalon.katalon_notes.provider.ServiceProvider}

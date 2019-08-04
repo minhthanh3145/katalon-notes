@@ -5,6 +5,7 @@ import org.dizitart.no2.objects.ObjectRepository;
 
 import com.katalon.platform.api.service.ApplicationManager;
 
+import thanhto.katalon.katalon_notes.api.IDatabaseActionProvider;
 import thanhto.katalon.katalon_notes.model.KatalonNote;
 
 public class NitriteDatabaseActionProvider implements IDatabaseActionProvider {
@@ -12,11 +13,6 @@ public class NitriteDatabaseActionProvider implements IDatabaseActionProvider {
 	private Nitrite db;
 	private ObjectRepository<KatalonNote> collection;
 	private String databaseFilePath = "";
-
-	@Override
-	public void openConnection() {
-		openConnection("");
-	}
 
 	@Override
 	public void openConnection(String... credentials) {
@@ -40,9 +36,8 @@ public class NitriteDatabaseActionProvider implements IDatabaseActionProvider {
 			String password = credentials[1];
 			database = Nitrite.builder().compressed().filePath(pathToDatabase).openOrCreate(username, password);
 		} else {
-			database = Nitrite.builder().compressed()
-					.filePath(pathToDatabase)
-					.openOrCreate("katalon-notes","katalon_notes");
+			database = Nitrite.builder().compressed().filePath(pathToDatabase).openOrCreate("katalon-notes",
+					"katalon_notes");
 		}
 		return database;
 	}
@@ -60,19 +55,19 @@ public class NitriteDatabaseActionProvider implements IDatabaseActionProvider {
 	}
 
 	@Override
-	public void setLocalDatabaseLocation(String location) {
+	public void setDatabaseLocation(String location) {
 		this.databaseFilePath = location;
 	}
 
 	@Override
-	public String getLocalDatabaseLocation() {
+	public String getDatabaseLocation() {
 		return this.databaseFilePath;
 	}
 
 	@Override
-	public void switchDatabase(String databaseLocation) {
-		setLocalDatabaseLocation(databaseLocation);
-		openConnection();
+	public void switchDatabase(String databaseLocation, String... credentials) {
+		setDatabaseLocation(databaseLocation);
+		openConnection(credentials);
 	}
 
 	@Override

@@ -10,9 +10,9 @@
         	<extension
             point="com.katalon.platform.extensions">
         <point
-                id="thanhto.katalon.katalon_notes.toolitem.katalonNotesToolItemWithMenuDescription"
+                id="thanhto.katalon.katalon_notes.ui.toolitem.katalonNotesToolItemWithMenuDescription"
                 extensionPointId="com.katalon.platform.api.extension.newDropdownToolItem"
-                implementationClass="thanhto.katalon.katalon_notes.toolitem.KatalonNotesToolItemWithMenuDescription">
+                implementationClass="thanhto.katalon.katalon_notes.ui.toolitem.KatalonNotesToolItemWithMenuDescription">
         </point>
     </extension>
 </plugin>

@@ -9,58 +9,59 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import thanhto.katalon.katalon_notes.api.IDatabaseActionProvider;
 import thanhto.katalon.katalon_notes.builder.NoteBuilder;
 import thanhto.katalon.katalon_notes.constant.CustomQueryConstants;
 import thanhto.katalon.katalon_notes.constant.ServiceName;
 import thanhto.katalon.katalon_notes.factory.DatabaseActionProviderFactory;
 import thanhto.katalon.katalon_notes.factory.DatabaseArtifactFactory;
 import thanhto.katalon.katalon_notes.model.KatalonNote;
-import thanhto.katalon.katalon_notes.provider.IDatabaseActionProvider;
 import thanhto.katalon.katalon_notes.util.NoteUtils;
 
 public class TestNitriteDatabaseController {
 
 	static NitriteDatabaseController controller;
-	private DatabaseActionProviderFactory actionProviderFactory = DatabaseActionProviderFactory.getInstance();
+	private IDatabaseActionProvider actionProvider = DatabaseActionProviderFactory.getInstance()
+			.get(ServiceName.Nitrite);
 
 	@Before
 	public void prepare() {
-
-		IDatabaseActionProvider actionProvider = actionProviderFactory.get(ServiceName.Nitrite);
-		actionProviderFactory.get(ServiceName.Nitrite).setLocalDatabaseLocation(
+		actionProvider.setDatabaseLocation(
 				"/Users/thanhto/Documents/repository/others/katalon-notes/src/test/resources");
-		actionProviderFactory.get(ServiceName.Nitrite).openConnection();
-		DatabaseArtifactFactory.getInstance().setArtifact(NitriteDatabaseController.class.getName(), "objectRepository",
+		actionProvider.openConnection("");
+
+		DatabaseArtifactFactory.getInstance()
+		.setArtifact(NitriteDatabaseController.class.getName(), "objectRepository",
 				actionProvider.get("objectRepository"));
 
 		controller = Mockito.spy(new NitriteDatabaseController());
 	}
 
 	@Test
-	public void basicOperationsSuite() {
-		basicOperationsSuite_testCreateWithSubtree();
-		basicOperationsSuite_testGetByName();
-		basicOperationsSuite_testUpdateWithoutMovingSubTree();
-		basicOperationsSuite_testDeleteWithoutSubtree();
-		basicOperationsSuite_testDeleteWithSubtree();
+	public void crudOperationSuite() {
+		crud_testCreateWithSubtree();
+		crud_testGetByName();
+		crud_testUpdateWithoutMovingSubTree();
+		crud_testDeleteWithoutSubtree();
+		crud_testDeleteWithSubtree();
 	}
 
 	@Test
 	public void updateRootNoteSuite() {
-		basicOperationsSuite_testCreateWithSubtree();
+		crud_testCreateWithSubtree();
 		updateRootNote_updateRootNote();
 	}
 
 	@Test
 	public void updateRootThenChildNoteSuite() {
-		basicOperationsSuite_testCreateWithSubtree();
+		crud_testCreateWithSubtree();
 		updateRootThenChildNote_updateRootNote();
 		updateRootThenChildNote_updateChildNote();
 	}
 
 	@Test
 	public void updateNoteThenItsChildNoteSuite() {
-		basicOperationsSuite_testCreateWithSubtree();
+		crud_testCreateWithSubtree();
 		updateRootThenChildNote_updateNote();
 		updateRootThenChildNote_updateItsChildNote();
 	}
@@ -82,6 +83,12 @@ public class TestNitriteDatabaseController {
 
 		KatalonNote actual1 = rootNotes.get(0);
 		Assert.assertTrue(NoteUtils.compare(actual1, expected));
+	}
+
+	@After
+	public void tearDown() {
+		actionProvider.closeConnection();
+		new File("src/test/resources/katalon_notes.db").delete();
 	}
 
 	private void updateRootThenChildNote_updateItsChildNote() {
@@ -180,7 +187,7 @@ public class TestNitriteDatabaseController {
 		Assert.assertEquals(0, notes.size());
 	}
 
-	public void basicOperationsSuite_testCreateWithSubtree() {
+	public void crud_testCreateWithSubtree() {
 		KatalonNote rootNoteExpected = new NoteBuilder("root", "root")
 				.addChildNote(new NoteBuilder("a", "a").addChildNote(NoteUtils.from("a1", "a1"))
 						.addChildNote(NoteUtils.from("a2", "a2"))
@@ -221,7 +228,7 @@ public class TestNitriteDatabaseController {
 	}
 
 	// @Test
-	public void basicOperationsSuite_testGetByName() {
+	public void crud_testGetByName() {
 		KatalonNote expected = new NoteBuilder("root", "root")
 				.addChildNote(new NoteBuilder("a", "a").addChildNote(NoteUtils.from("a1", "a1"))
 						.addChildNote(NoteUtils.from("a2", "a2"))
@@ -238,7 +245,7 @@ public class TestNitriteDatabaseController {
 	}
 
 	// @Test
-	public void basicOperationsSuite_testUpdateWithoutMovingSubTree() {
+	public void crud_testUpdateWithoutMovingSubTree() {
 		KatalonNote expected = new NoteBuilder("root", "root")
 				.addChildNote(new NoteBuilder("a", "a").addChildNote(NoteUtils.from("a1", "a1"))
 						.addChildNote(NoteUtils.from("a2", "a2"))
@@ -263,7 +270,7 @@ public class TestNitriteDatabaseController {
 	}
 
 	// @Test
-	public void basicOperationsSuite_testDeleteWithoutSubtree() {
+	public void crud_testDeleteWithoutSubtree() {
 		KatalonNote expected = new NoteBuilder("root", "root")
 				.addChildNote(new NoteBuilder("a", "a").addChildNote(NoteUtils.from("a1", "a1"))
 						.addChildNote(NoteUtils.from("a2", "a2"))
@@ -286,7 +293,7 @@ public class TestNitriteDatabaseController {
 		Assert.assertTrue(NoteUtils.compare(actual, expected));
 	}
 
-	public void basicOperationsSuite_testDeleteWithSubtree() {
+	public void crud_testDeleteWithSubtree() {
 		KatalonNote expected = new NoteBuilder("root", "root")
 				.addChildNote(new NoteBuilder("a", "a").addChildNote(NoteUtils.from("a1", "a1"))
 						.addChildNote(NoteUtils.from("a2", "a2")).build())
@@ -332,11 +339,4 @@ public class TestNitriteDatabaseController {
 			System.out.println(b.getTitle() + " " + b.getContent());
 		});
 	}
-
-	@After
-	public void tearDown() {
-		actionProviderFactory.get(ServiceName.Nitrite).closeConnection();
-		new File("src/test/resources/katalon_notes.db").delete();
-	}
-
 }

@@ -1,4 +1,4 @@
-package thanhto.katalon.katalon_notes.tree;
+package thanhto.katalon.katalon_notes.ui.tree;
 
 import java.io.IOException;
 

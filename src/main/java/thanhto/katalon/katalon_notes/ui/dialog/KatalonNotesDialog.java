@@ -1,4 +1,4 @@
-package thanhto.katalon.katalon_notes.dialog;
+package thanhto.katalon.katalon_notes.ui.dialog;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -44,6 +44,7 @@ import org.eclipse.swt.widgets.Text;
 import com.katalon.platform.api.service.ApplicationManager;
 import com.katalon.platform.api.ui.UISynchronizeService;
 
+import thanhto.katalon.katalon_notes.api.IRenderer;
 import thanhto.katalon.katalon_notes.constant.CustomQueryConstants;
 import thanhto.katalon.katalon_notes.constant.ServiceName;
 import thanhto.katalon.katalon_notes.exception.PluginPreferenceIsNotAvailable;
@@ -53,10 +54,9 @@ import thanhto.katalon.katalon_notes.model.KatalonNote;
 import thanhto.katalon.katalon_notes.provider.ServiceProvider;
 import thanhto.katalon.katalon_notes.renderer.CommonMarkRenderer;
 import thanhto.katalon.katalon_notes.renderer.HtmlRendererFactory;
-import thanhto.katalon.katalon_notes.renderer.IRenderer;
 import thanhto.katalon.katalon_notes.service.DatabaseService;
-import thanhto.katalon.katalon_notes.tree.KatalonNotesTreeContentProvider;
-import thanhto.katalon.katalon_notes.tree.KatalonNotesTreeLabelProvider;
+import thanhto.katalon.katalon_notes.ui.tree.KatalonNotesTreeContentProvider;
+import thanhto.katalon.katalon_notes.ui.tree.KatalonNotesTreeLabelProvider;
 
 public class KatalonNotesDialog extends Dialog {
 
@@ -372,7 +372,7 @@ public class KatalonNotesDialog extends Dialog {
 							.getFolderLocation();
 					actionProviderFactory
 							.get(ServiceName.serviceNameFrom(databaseService.getController().getClass().getName()))
-							.setLocalDatabaseLocation(currentProject);
+							.setDatabaseLocation(currentProject);
 					uiSynchronizeService.syncExec(() -> {
 						txtDatabase.setText(currentProject);
 					});
@@ -384,7 +384,7 @@ public class KatalonNotesDialog extends Dialog {
 							actionProviderFactory
 									.get(ServiceName
 											.serviceNameFrom(databaseService.getController().getClass().getName()))
-									.switchDatabase(newDirectory);
+									.switchDatabase(newDirectory, "katalon-notes", "katalon_notes");
 							reloadService(newDirectory);
 							lblInformation.setText("Switched to new database !");
 							refresh();

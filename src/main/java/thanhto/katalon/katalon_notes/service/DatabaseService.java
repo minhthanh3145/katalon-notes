@@ -2,12 +2,12 @@ package thanhto.katalon.katalon_notes.service;
 
 import java.util.List;
 
-import thanhto.katalon.katalon_notes.controller.IDatabaseController;
+import thanhto.katalon.katalon_notes.api.IDatabaseController;
 
 /**
- * Controller-agnostic service that delegate method calls to whatever
- * controllers were given. This service should be obtained through
- * ServiceProvider to ensure that appropriate controllers are given
+ * Controller-agnostic service that delegate method calls to the given
+ * controllers. This service should be obtained through ServiceProvider to
+ * ensure that appropriate controllers are given
  * 
  * @author thanhto
  *

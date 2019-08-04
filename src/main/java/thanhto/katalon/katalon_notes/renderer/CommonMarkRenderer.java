@@ -11,6 +11,8 @@ import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 
+import thanhto.katalon.katalon_notes.api.IRenderer;
+
 /**
  * Adapter from <a href='https://github.com/atlassian/commonmark-java'>
  * common-mark </a> library to a IRenderer
@@ -20,6 +22,8 @@ import org.commonmark.renderer.html.HtmlRenderer;
  */
 public class CommonMarkRenderer implements IRenderer {
 	List<Extension> extensions = new ArrayList<>();
+	private Parser parser;
+	private HtmlRenderer renderer;
 
 	public void addExtensions(Extension commonMarkExtensions) {
 		this.extensions.add(commonMarkExtensions);
@@ -27,9 +31,7 @@ public class CommonMarkRenderer implements IRenderer {
 
 	@Override
 	public String render(String markdownString) {
-		Parser parser = Parser.builder().extensions(extensions).build();
 		Node document = parser.parse(markdownString);
-		HtmlRenderer renderer = HtmlRenderer.builder().extensions(extensions).build();
 		return renderer.render(document);
 	}
 
@@ -49,6 +51,9 @@ public class CommonMarkRenderer implements IRenderer {
 			System.out.println("autolink anchor extension for common-mark is enabled");
 			addExtensions(HeadingAnchorExtension.create());
 		}
+
+		parser = Parser.builder().extensions(extensions).build();
+		renderer = HtmlRenderer.builder().extensions(extensions).build();
 	}
 
 }

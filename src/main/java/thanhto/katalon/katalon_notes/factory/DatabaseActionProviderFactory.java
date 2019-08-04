@@ -3,8 +3,8 @@ package thanhto.katalon.katalon_notes.factory;
 import java.util.HashMap;
 import java.util.Map;
 
+import thanhto.katalon.katalon_notes.api.IDatabaseActionProvider;
 import thanhto.katalon.katalon_notes.constant.ServiceName;
-import thanhto.katalon.katalon_notes.provider.IDatabaseActionProvider;
 import thanhto.katalon.katalon_notes.provider.NitriteDatabaseActionProvider;
 
 /**

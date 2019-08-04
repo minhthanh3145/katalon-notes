@@ -1,7 +1,9 @@
-package thanhto.katalon.katalon_notes.renderer;
+package thanhto.katalon.katalon_notes.api;
 
 import java.util.List;
 import java.util.Map;
+
+import thanhto.katalon.katalon_notes.renderer.HtmlRendererFactory;
 
 /**
  * Interface represents a renderer that can be used to convert markdown string

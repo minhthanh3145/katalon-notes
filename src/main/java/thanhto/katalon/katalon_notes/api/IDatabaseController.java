@@ -1,8 +1,6 @@
-package thanhto.katalon.katalon_notes.controller;
+package thanhto.katalon.katalon_notes.api;
 
 import java.util.List;
-
-import thanhto.katalon.katalon_notes.provider.IDatabaseActionProvider;
 
 /**
  * A Database controller interface that offers CRUD operations.
